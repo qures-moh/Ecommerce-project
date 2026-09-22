@@ -17,8 +17,9 @@ dotenv.config();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://yourstore.com",
-  "https://admin.yourstore.com",
+  
+ 
+  "https://ecommerce-frontend-eg4r.onrender.com",
 ];
 
 app.use(
@@ -33,7 +34,10 @@ app.use(
     credentials: true,
   })
 );
-
+app.use(cors({
+       origin: "http://localhost:5173",
+    credentials: true,
+}));
 
 app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
