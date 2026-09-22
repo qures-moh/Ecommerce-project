@@ -8,7 +8,7 @@ const {
   updateCategory,
   updateCategoryStatus,
   deleteCategory,
-} = require("../controller/CategoryController");
+} = require("../controller/categoryController");
 
 const upload = require("../middleware/multer");
 
