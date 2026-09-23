@@ -9,8 +9,6 @@ import { addToCart } from "../utils/cartSlice";
 import { toggleWishlist } from "../utils/wishlist";
 import api from "../utils/axios";
 
-
-
 const getImageUrl = (image) => {
   if (!image || typeof image !== "string") {
     return "";
@@ -21,7 +19,8 @@ const getImageUrl = (image) => {
   }
 
   const baseUrl =
-    api.defaults.baseURL?.replace(/\/api\/?$/, "") || "http://localhost:3000";
+    api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
+    "http://localhost:3000";
 
   const cleanImage = image.replace(/\\/g, "/").replace(/^\/+/, "");
 
@@ -112,7 +111,7 @@ const Products = () => {
   const dispatch = useDispatch();
 
   const wishlist = useSelector(
-    (state) => state.wishlist || state.whishlist || [],
+    (state) => state.wishlist || state.whishlist || []
   );
 
   const {
@@ -125,6 +124,24 @@ const Products = () => {
   const [sort, setSort] = useState("newest");
 
   useEffect(() => {
+    console.log("API URL:", api.defaults.baseURL);
+
+    const testApi = async () => {
+      try {
+        const response = await api.get("/products", {
+          params: {
+            category,
+          },
+        });
+
+        console.log("DIRECT API RESPONSE:", response.data);
+      } catch (error) {
+        console.error("DIRECT API ERROR:", error);
+      }
+    };
+
+    testApi();
+
     dispatch(getProducts(category));
   }, [dispatch, category]);
 
@@ -168,7 +185,7 @@ const Products = () => {
         images: variant.images || [],
         image: variant.images?.[0] || "",
         quantity: 1,
-      }),
+      })
     );
 
     toast.success(`${product.name} added to cart`);
@@ -179,7 +196,7 @@ const Products = () => {
     event.stopPropagation();
 
     const isWishlisted = wishlist.some(
-      (item) => String(item._id) === String(product._id),
+      (item) => String(item._id) === String(product._id)
     );
 
     dispatch(toggleWishlist(product));
@@ -206,10 +223,6 @@ const Products = () => {
     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
 
-  useEffect(() => {
-  console.log("API URL:", api.defaults.baseURL);
-  dispatch(getProducts(category));
-}, [dispatch, category]);
   return (
     <div className="catalog-page">
       <section className="catalog-header">
@@ -247,18 +260,24 @@ const Products = () => {
               onChange={(e) => setSort(e.target.value)}
             >
               <option value="newest">Newest First</option>
-
               <option value="low">Price: Low to High</option>
-
               <option value="high">Price: High to Low</option>
             </select>
           </div>
         </div>
       </section>
 
-      {loading && <div className="catalog-message">Loading products...</div>}
+      {loading && (
+        <div className="catalog-message">
+          Loading products...
+        </div>
+      )}
 
-      {error && <div className="catalog-message catalog-error">{error}</div>}
+      {error && (
+        <div className="catalog-message catalog-error">
+          {error}
+        </div>
+      )}
 
       {!loading && !error && sortedProducts.length > 0 && (
         <section className="catalog-products-section">
@@ -286,7 +305,7 @@ const Products = () => {
               const categoryName = getCategoryName(product.category);
 
               const isWishlisted = wishlist.some(
-                (item) => String(item._id) === String(product._id),
+                (item) => String(item._id) === String(product._id)
               );
 
               const stock = Number(variant?.stock) || 0;
@@ -299,21 +318,32 @@ const Products = () => {
                   >
                     <div className="catalog-image-box">
                       {image ? (
-                        <img src={getImageUrl(image)} alt={product.name} />
+                        <img
+                          src={getImageUrl(image)}
+                          alt={product.name}
+                        />
                       ) : (
-                        <div className="catalog-no-image">No Image</div>
+                        <div className="catalog-no-image">
+                          No Image
+                        </div>
                       )}
 
                       {hasDiscount && discountText && (
-                        <span className="catalog-discount">{discountText}</span>
+                        <span className="catalog-discount">
+                          {discountText}
+                        </span>
                       )}
 
                       <button
                         type="button"
                         className={`catalog-heart ${
-                          isWishlisted ? "catalog-heart-active" : ""
+                          isWishlisted
+                            ? "catalog-heart-active"
+                            : ""
                         }`}
-                        onClick={(event) => handleWishlist(event, product)}
+                        onClick={(event) =>
+                          handleWishlist(event, product)
+                        }
                         aria-label={
                           isWishlisted
                             ? "Remove from wishlist"
@@ -322,7 +352,11 @@ const Products = () => {
                       >
                         <Heart
                           size={19}
-                          fill={isWishlisted ? "currentColor" : "none"}
+                          fill={
+                            isWishlisted
+                              ? "currentColor"
+                              : "none"
+                          }
                           strokeWidth={1.8}
                         />
                       </button>
@@ -331,13 +365,16 @@ const Products = () => {
 
                   <div className="catalog-info">
                     {categoryName && (
-                      <span className="catalog-category">{categoryName}</span>
+                      <span className="catalog-category">
+                        {categoryName}
+                      </span>
                     )}
 
                     <h3>{product.name}</h3>
 
                     {variant &&
-                      getAttributes(variant.attributes).length > 0 && (
+                      getAttributes(variant.attributes).length >
+                        0 && (
                         <div className="catalog-attributes">
                           {getAttributes(variant.attributes)
                             .slice(0, 3)
@@ -349,7 +386,9 @@ const Products = () => {
                         </div>
                       )}
 
-                    <p className="catalog-description">{product.description}</p>
+                    <p className="catalog-description">
+                      {product.description}
+                    </p>
 
                     <div className="catalog-bottom">
                       <div className="catalog-price-area">
@@ -383,9 +422,13 @@ const Products = () => {
         </section>
       )}
 
-      {!loading && !error && sortedProducts.length === 0 && (
-        <div className="catalog-message">No products found.</div>
-      )}
+      {!loading &&
+        !error &&
+        sortedProducts.length === 0 && (
+          <div className="catalog-message">
+            No products found.
+          </div>
+        )}
     </div>
   );
 };
