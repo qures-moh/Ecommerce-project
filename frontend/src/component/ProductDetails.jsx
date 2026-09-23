@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Heart, Minus, Plus, ShoppingCart } from "lucide-react";
+import {  ArrowLeft, Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import api from "../utils/axios";
@@ -463,10 +463,10 @@ export default function ProductDetails() {
 
             <p>{error || "Unable to load product"}</p>
 
-            <Link to="/categories" className="product-back-button">
+            {/* <Link to="/categories"     className="product-page-back-btn">
               <ArrowLeft size={18} />
               Back
-            </Link>
+            </Link> */}
           </div>
         </div>
       </section>
@@ -496,10 +496,10 @@ export default function ProductDetails() {
 
         <button
           type="button"
-          className="product-back-button"
+          className="product-page-back-btn"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18}  />
           Back
         </button>
 

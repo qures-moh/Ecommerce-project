@@ -1,10 +1,7 @@
 import {
-  ShoppingBag,
   MapPin,
   Phone,
 } from "lucide-react";
-
-
 
 export default function Footer() {
   return (
@@ -13,11 +10,11 @@ export default function Footer() {
 
         <div className="shoply-footer-brand">
           <div className="shoply-footer-logo">
-            <div className="shoply-footer-logo-icon">
-              <ShoppingBag size={22} />
-            </div>
-
-            <span>Shoply</span>
+            <img
+              src="/Just-book.png"
+              alt="Just Book It"
+              className="shoply-footer-logo-image"
+            />
           </div>
 
           <p>
