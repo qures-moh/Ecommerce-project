@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   LogOut,
-  ChevronDown,
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -29,54 +28,56 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const user = useSelector((state) => state.user?.user);
+  const user = useSelector((state) => state.user);
+
+  const isLoggedIn = !!user;
 
   const menuItems = [
     {
       name: "Dashboard",
-      path: "/dashboard",
+      path: "/admin/dashboard",
       icon: LayoutDashboard,
     },
     {
       name: "Products",
-      path: "/products",
+      path: "/admin/products",
       icon: Package,
     },
     {
       name: "Orders",
-      path: "/orders",
+      path: "/admin/orders",
       icon: ShoppingCart,
     },
     {
       name: "Users",
-      path: "/users",
+      path: "/admin/users",
       icon: Users,
     },
     {
       name: "Categories",
-      path: "/categories",
+      path: "/admin/categories",
       icon: Tag,
     },
     {
       name: "Subcategories",
-      path: "/subcategories",
+      path: "/admin/subcategories",
       icon: Tags,
     },
     {
       name: "Attributes",
-      path: "/attributes",
+      path: "/admin/attributes",
       icon: SlidersHorizontal,
     },
     {
       name: "Attribute Values",
-      path: "/attribute-values",
+      path: "/admin/attribute-values",
       icon: List,
     },
   ];
 
   const handleLogout = async () => {
     try {
-      await api.post("user/logout");
+      await api.post("/user/logout");
     } catch (error) {
       console.log(error);
     }
@@ -87,6 +88,14 @@ const AdminLayout = () => {
     toast.success("Logout successful");
 
     navigate("/admin/login");
+  };
+
+  const handleLogin = () => {
+    navigate("/admin/login");
+  };
+
+  const handleAddProduct = () => {
+    navigate("/admin/products/add");
   };
 
   return (
@@ -104,11 +113,11 @@ const AdminLayout = () => {
         }`}
       >
         <div className="admin-logo-section">
-          <div className="admin-logo-box">
-            <Package size={23} />
-          </div>
-
-          <h1>Shoply</h1>
+          <img
+            src="/image.png"
+            alt="Just Book It"
+            className="admin-logo-image"
+          />
 
           <button
             className="admin-close-button"
@@ -143,27 +152,6 @@ const AdminLayout = () => {
             })}
           </nav>
         </div>
-
-        <div className="admin-sidebar-bottom">
-          <div className="grow-store-card">
-            <div className="grow-icon">
-              <Package size={27} />
-            </div>
-
-            <h3>Grow Your Store</h3>
-
-            <p>
-              Add new products and increase your sales
-            </p>
-
-            <button
-              onClick={() => navigate("/products/add")}
-            >
-              <Plus size={18} />
-              Add Product
-            </button>
-          </div>
-        </div>
       </aside>
 
       <div className="admin-main">
@@ -178,33 +166,75 @@ const AdminLayout = () => {
           </div>
 
           <div className="admin-topbar-right">
-            <div className="admin-profile">
-              <div className="admin-avatar">
-                {user?.firstName
-                  ? user.firstName.charAt(0).toUpperCase()
-                  : "A"}
-              </div>
+            {isLoggedIn ? (
+              <>
+                <div className="admin-profile">
+                  <div className="admin-avatar">
+                    {user?.firstName
+                      ? user.firstName.charAt(0).toUpperCase()
+                      : "A"}
+                  </div>
 
-              <div className="admin-profile-info">
-                <p>{user?.firstName || "Admin"}</p>
-                <span>Administrator</span>
-              </div>
+                  <div className="admin-profile-info">
+                    <p>{user?.firstName || "Admin"}</p>
+                    <span>
+                      {user?.role
+                        ? user.role.charAt(0).toUpperCase() +
+                          user.role.slice(1)
+                        : "Admin"}
+                    </span>
+                  </div>
+                </div>
 
-              <ChevronDown size={17} />
-            </div>
+                <button
+                  className="admin-add-product-top"
+                  onClick={handleAddProduct}
+                >
+                  <Plus size={17} />
+                  Add Product
+                </button>
 
-            <button
-              className="admin-logout"
-              onClick={handleLogout}
-            >
-              <LogOut size={17} />
-              Logout
-            </button>
+                <button
+                  className="admin-logout"
+                  onClick={handleLogout}
+                >
+                  <LogOut size={17} />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                className="admin-login-button"
+                onClick={handleLogin}
+              >
+                Login
+              </button>
+            )}
           </div>
         </header>
 
         <main className="admin-content">
-          <Outlet />
+          {isLoggedIn ? (
+            <Outlet />
+          ) : (
+            <div className="admin-login-required">
+              <div className="admin-login-required-box">
+                <h1>Please Login First</h1>
+
+                <p>
+                  You need to login as an administrator to access
+                  the admin panel.
+                </p>
+
+                <button
+                  className="admin-login-required-button"
+                  onClick={handleLogin}
+                >
+                  Login
+                </button>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Search,
   Eye,
   UserCheck,
   UserX,
@@ -12,10 +11,8 @@ import {
 } from "lucide-react";
 import api from "../../utils/axios";
 
-
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -29,7 +26,7 @@ export default function AdminUsers() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search]);
+  }, [page]);
 
   const fetchUsers = async () => {
     try {
@@ -40,7 +37,6 @@ export default function AdminUsers() {
         params: {
           page,
           limit,
-          search,
         },
       });
 
@@ -58,29 +54,20 @@ export default function AdminUsers() {
     }
   };
 
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    setPage(1);
-  };
-
   const formatDate = (date) => {
     if (!date) return "—";
 
-    return new Date(date).toLocaleDateString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    );
+    return new Date(date).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   const getUserName = (user) => {
     return (
-      `${user.firstName || ""} ${
-        user.lastName || ""
-      }`.trim() || "Unknown User"
+      `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+      "Unknown User"
     );
   };
 
@@ -88,6 +75,42 @@ export default function AdminUsers() {
     return getUserName(user)
       .charAt(0)
       .toUpperCase();
+  };
+
+  const getImageUrl = (image) => {
+    if (!image || typeof image !== "string") {
+      return "";
+    }
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    const baseUrl =
+      api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
+      "http://localhost:3000";
+
+    const cleanImage = image
+      .replace(/\\/g, "/")
+      .replace(/^\/+/, "");
+
+    return `${baseUrl}/${cleanImage}`;
+  };
+
+  const handleImageError = (e) => {
+    e.currentTarget.style.display = "none";
+
+    const fallback =
+      e.currentTarget.parentElement.querySelector(
+        ".user-avatar-fallback"
+      );
+
+    if (fallback) {
+      fallback.style.display = "flex";
+    }
   };
 
   const openStatusConfirmation = (user) => {
@@ -180,19 +203,6 @@ export default function AdminUsers() {
         </div>
       )}
 
-      <div className="users-filters">
-        <div className="users-search-box">
-          <Search size={18} />
-
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={handleSearch}
-          />
-        </div>
-      </div>
-
       <div className="users-table-card">
         {users.length === 0 ? (
           <div className="users-empty">
@@ -201,8 +211,7 @@ export default function AdminUsers() {
             <h3>No users found</h3>
 
             <p>
-              There are no customers matching your
-              search.
+              There are no customers available.
             </p>
           </div>
         ) : (
@@ -223,13 +232,25 @@ export default function AdminUsers() {
                   <td>
                     <div className="user-cell">
                       <div className="user-avatar">
-                        {user.profileImage ? (
+                        <span
+                          className="user-avatar-fallback"
+                          style={{
+                            display: user.profileImage
+                              ? "none"
+                              : "flex",
+                          }}
+                        >
+                          {getInitial(user)}
+                        </span>
+
+                        {user.profileImage && (
                           <img
-                            src={`http://localhost:3000/${user.profileImage}`}
+                            src={getImageUrl(
+                              user.profileImage
+                            )}
                             alt={getUserName(user)}
+                            onError={handleImageError}
                           />
-                        ) : (
-                          getInitial(user)
                         )}
                       </div>
 
