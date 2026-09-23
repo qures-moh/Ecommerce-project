@@ -33713,3 +33713,130 @@ body {
     width: 135px;
   }
 }
+.wish-empty {
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed #f4c7b5;
+  border-radius: 20px;
+}
+
+.wish-empty-icon {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff1eb;
+  border-radius: 50%;
+  color: #f15a24;
+  margin-bottom: 24px;
+}
+
+.wish-empty h2 {
+  margin: 0 0 10px;
+  color: #17365d;
+  font-size: 22px;
+}
+
+.wish-empty p {
+  margin: 0 0 26px;
+  color: #606060;
+  font-size: 15px;
+}
+
+.wish-empty a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 24px;
+  background: #f15a24;
+  color: #ffffff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.wish-empty a:hover {
+  background: #d94b1c;
+}
+
+@media (max-width: 768px) {
+  .wish-empty {
+    min-height: 400px;
+    padding: 30px 20px;
+    border-radius: 16px;
+  }
+
+  .wish-empty-icon {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 20px;
+  }
+
+  .wish-empty h2 {
+    font-size: 20px;
+  }
+
+  .wish-empty p {
+    font-size: 14px;
+    max-width: 280px;
+    line-height: 1.5;
+  }
+
+  .wish-empty a {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
+.jbi-signin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 22px;
+  background: #f15a24;
+  color: #ffffff !important;
+  border: 1px solid #f15a24;
+  border-radius: 8px;
+  text-decoration: none !important;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.jbi-signin-button:hover {
+  background: #d94b1c;
+  border-color: #d94b1c;
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+.signup-image-preview {
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #f15a24;
+  background: #fff1eb;
+}
+
+.signup-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .signup-image-preview {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+  }
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../utils/axios";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
@@ -24,6 +24,8 @@ export default function SignUp() {
     gender: "",
     profileImage: null,
   });
+
+  const [imagePreview, setImagePreview] = useState("");
 
   const [loading, setLoading] = useState(false);
 
@@ -143,7 +145,18 @@ export default function SignUp() {
       ...prev,
       profileImage: file,
     }));
+
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
   };
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -209,6 +222,8 @@ export default function SignUp() {
         profileImage: null,
       });
 
+      setImagePreview("");
+
       toast.success(
         res.data.message ||
           "Signup successful!"
@@ -233,6 +248,7 @@ export default function SignUp() {
   return (
     <div className="signup-page">
       <div className="signup-container">
+
         <div className="signup-header">
           <div className="signup-logo">
             <UserPlus size={22} />
@@ -250,7 +266,9 @@ export default function SignUp() {
           onSubmit={handleSubmit}
           noValidate
         >
+
           <div className="signup-name-grid">
+
             <div className="signup-form-group">
               <label
                 className="signup-field-label"
@@ -296,6 +314,7 @@ export default function SignUp() {
                 />
               </div>
             </div>
+
           </div>
 
           <div className="signup-form-group">
@@ -345,6 +364,7 @@ export default function SignUp() {
           </div>
 
           <div className="signup-name-grid">
+
             <div className="signup-form-group">
               <label
                 className="signup-field-label"
@@ -401,15 +421,26 @@ export default function SignUp() {
                 </select>
               </div>
             </div>
+
           </div>
 
           <div className="signup-form-group">
+
             <label
               className="signup-field-label"
               htmlFor="profileImage"
             >
               Profile photo
             </label>
+
+            {imagePreview && (
+              <div className="signup-image-preview">
+                <img
+                  src={imagePreview}
+                  alt="Selected profile"
+                />
+              </div>
+            )}
 
             <label
               htmlFor="profileImage"
@@ -442,6 +473,7 @@ export default function SignUp() {
             <span className="signup-file-info">
               JPG, PNG or JPEG · Maximum 5MB
             </span>
+
           </div>
 
           <button
@@ -455,6 +487,7 @@ export default function SignUp() {
               ? "Creating account..."
               : "Create account"}
           </button>
+
         </form>
 
         <div className="signup-footer">
@@ -465,6 +498,7 @@ export default function SignUp() {
             </Link>
           </p>
         </div>
+
       </div>
     </div>
   );

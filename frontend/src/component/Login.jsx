@@ -70,6 +70,9 @@ export default function Login() {
       });
 
       console.log("Login response:", res.data);
+      console.log("Login response:", res.data);
+console.log("Login user:", res.data.user);
+console.log("Login gender:", res.data.user?.gender);
 
       dispatch(setToken(res.data.token));
       dispatch(addUser(res.data.user));

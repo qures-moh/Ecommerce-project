@@ -97,6 +97,8 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         profileImage: user.profileImage,
+        gender:user.gender,
+        dob:user.dob
       },
     });
   } catch (error) {

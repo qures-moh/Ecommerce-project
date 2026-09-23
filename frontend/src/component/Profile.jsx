@@ -8,10 +8,51 @@ import {
   Edit,
   ShoppingBag,
 } from "lucide-react";
+import api from "../utils/axios";
+
+const getImageUrl = (image) => {
+  if (!image || typeof image !== "string") {
+    return "";
+  }
+
+  if (
+    image.startsWith("http://") ||
+    image.startsWith("https://")
+  ) {
+    return image;
+  }
+
+  const baseUrl =
+    api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
+    "http://localhost:3000";
+
+  const cleanImage = image
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "");
+
+  return `${baseUrl}/${cleanImage}`;
+};
+
+const formatDate = (date) => {
+  if (!date) {
+    return "Not provided";
+  }
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return parsedDate.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
 const Profile = () => {
   const navigate = useNavigate();
-
   const user = useSelector((state) => state.user);
 
   if (!user) {
@@ -19,7 +60,6 @@ const Profile = () => {
       <div className="profile-page">
         <div className="profile-empty">
           <h2>Please login to view your profile</h2>
-
           <button onClick={() => navigate("/login")}>
             Login
           </button>
@@ -32,46 +72,37 @@ const Profile = () => {
     <div className="profile-page">
       <div className="profile-container">
 
-     
-
         <div className="profile-page-header">
           <h1>My Profile</h1>
-
-          <p>
-            Manage your personal information and orders
-          </p>
+          <p>Manage your personal information and orders</p>
         </div>
-
-     
 
         <div className="profile-card">
 
-      
           <div className="profile-card-header">
 
             <div className="profile-user">
-            <div className="profile-image">
-  {user.profileImage ? (
-    <img
-      src={`http://localhost:3000/${String(user.profileImage)
-        .replace(/^\/+/, "")
-        .replace(/\\/g, "/")}`}
-      alt="Profile"
-    />
-  ) : (
-    <User size={42} />
-  )}
-</div>
-              
+
+              <div className="profile-image">
+                {user.profileImage ? (
+                  <img
+                    src={getImageUrl(user.profileImage)}
+                    alt="Profile"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <User size={42} />
+                )}
+              </div>
 
               <div className="profile-user-info">
-
                 <h2>
                   {user.firstName} {user.lastName}
                 </h2>
 
                 <p>{user.email}</p>
-
               </div>
 
             </div>
@@ -86,101 +117,83 @@ const Profile = () => {
 
           </div>
 
-      
-
           <div className="profile-details">
 
             <div className="section-heading">
-
               <h2>User Details</h2>
-
               <p>Your personal account information</p>
-
             </div>
 
             <div className="details-grid">
 
-           
-
               <div className="detail-item">
-
                 <div className="detail-icon">
                   <User size={19} />
                 </div>
 
                 <div>
                   <span>First Name</span>
-                  <p>{user.firstName || "Not provided"}</p>
+                  <p>
+                    {user.firstName || "Not provided"}
+                  </p>
                 </div>
-
               </div>
 
-         
               <div className="detail-item">
-
                 <div className="detail-icon">
                   <User size={19} />
                 </div>
 
                 <div>
                   <span>Last Name</span>
-                  <p>{user.lastName || "Not provided"}</p>
+                  <p>
+                    {user.lastName || "Not provided"}
+                  </p>
                 </div>
-
               </div>
 
-            
-
               <div className="detail-item">
-
                 <div className="detail-icon">
                   <Mail size={19} />
                 </div>
 
                 <div>
                   <span>Email Address</span>
-                  <p>{user.email || "Not provided"}</p>
+                  <p>
+                    {user.email || "Not provided"}
+                  </p>
                 </div>
-
               </div>
 
-            
-
               <div className="detail-item">
-
                 <div className="detail-icon">
                   <Calendar size={19} />
                 </div>
 
                 <div>
                   <span>Date of Birth</span>
-                  <p>{user.dob || "Not provided"}</p>
+                  <p>
+                    {formatDate(user.dob)}
+                  </p>
                 </div>
-
               </div>
 
-             
-
               <div className="detail-item">
-
                 <div className="detail-icon">
                   <UserRound size={19} />
                 </div>
 
                 <div>
                   <span>Gender</span>
-                  <p>{user.gender || "Not provided"}</p>
+                  <p>
+                    {user.gender || "Not provided"}
+                  </p>
                 </div>
-
               </div>
 
             </div>
-
           </div>
-
         </div>
-
-   
 
         <div className="orders-card">
 
@@ -192,7 +205,6 @@ const Profile = () => {
 
             <div>
               <h2>My Orders</h2>
-
               <p>
                 View and manage your previous orders
               </p>

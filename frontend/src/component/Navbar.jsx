@@ -1,19 +1,8 @@
-import {
-  Link,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import {
-  useDispatch,
-  useSelector,
-} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-import {
-  useState,
-  useRef,
-  useEffect,
-} from "react";
+import { useState, useRef, useEffect } from "react";
 
 import {
   MapPin,
@@ -26,7 +15,6 @@ import {
   Heart,
   User,
   LogOut,
-  LayoutDashboard,
   Navigation,
   Package,
 } from "lucide-react";
@@ -42,51 +30,32 @@ export default function Navbar() {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [profileOpen, setProfileOpen] =
-    useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
-  const [locationOpen, setLocationOpen] =
-    useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
 
-  const [locationSearch, setLocationSearch] =
-    useState("");
+  const [locationSearch, setLocationSearch] = useState("");
 
-  const [selectedLocation, setSelectedLocation] =
-    useState({
-      city: "Indore",
-      state: "Madhya Pradesh",
-      country: "India",
-    });
+  const [selectedLocation, setSelectedLocation] = useState({
+    city: "Indore",
+    state: "Madhya Pradesh",
+    country: "India",
+  });
 
-  const [detectingLocation, setDetectingLocation] =
-    useState(false);
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
-  const [logoutConfirmOpen, setLogoutConfirmOpen] =
-    useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const profileRef = useRef(null);
 
-  const user = useSelector(
-    (store) => store.user
-  );
+  const user = useSelector((store) => store.user);
 
-  const cart = useSelector(
-    (store) => store.cart
-  );
-
-  const isAdmin =
-    user?.role === "admin";
+  const cart = useSelector((store) => store.cart);
 
   const cartCount = Array.isArray(cart)
-    ? cart.reduce(
-        (total, item) =>
-          total +
-          (Number(item.quantity) || 1),
-        0
-      )
+    ? cart.reduce((total, item) => total + (Number(item.quantity) || 1), 0)
     : 0;
 
   const locations = [
@@ -142,75 +111,45 @@ export default function Navbar() {
     },
   ];
 
-  const filteredLocations =
-    locations.filter((item) => {
-      const value =
-        locationSearch
-          .toLowerCase()
-          .trim();
+  const filteredLocations = locations.filter((item) => {
+    const value = locationSearch.toLowerCase().trim();
 
-      if (!value) {
-        return true;
-      }
+    if (!value) {
+      return true;
+    }
 
-      return (
-        item.city
-          .toLowerCase()
-          .includes(value) ||
-        item.state
-          .toLowerCase()
-          .includes(value)
-      );
-    });
-
-  const popularLocations =
-    locations.filter(
-      (item) =>
-        item.city === "Bengaluru"
+    return (
+      item.city.toLowerCase().includes(value) ||
+      item.state.toLowerCase().includes(value)
     );
+  });
+
+  const popularLocations = locations.filter(
+    (item) => item.city === "Bengaluru",
+  );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        profileRef.current &&
-        !profileRef.current.contains(
-          event.target
-        )
-      ) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
         setProfileOpen(false);
       }
     };
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   useEffect(() => {
     document.body.style.overflow =
-      mobileOpen ||
-      locationOpen ||
-      logoutConfirmOpen
-        ? "hidden"
-        : "";
+      mobileOpen || locationOpen || logoutConfirmOpen ? "hidden" : "";
 
     return () => {
-      document.body.style.overflow =
-        "";
+      document.body.style.overflow = "";
     };
-  }, [
-    mobileOpen,
-    locationOpen,
-    logoutConfirmOpen,
-  ]);
+  }, [mobileOpen, locationOpen, logoutConfirmOpen]);
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
@@ -229,16 +168,12 @@ export default function Navbar() {
     }
   };
 
-  const handleLocationSelect = (
-    selected
-  ) => {
+  const handleLocationSelect = (selected) => {
     setSelectedLocation(selected);
     setLocationOpen(false);
     setLocationSearch("");
 
-    toast.success(
-      `Location changed to ${selected.city}`
-    );
+    toast.success(`Location changed to ${selected.city}`);
   };
 
   const handleLogout = () => {
@@ -252,14 +187,9 @@ export default function Navbar() {
 
   const confirmLogout = async () => {
     try {
-      await api.post(
-        "/user/logout"
-      );
+      await api.post("/user/logout");
     } catch (error) {
-      console.log(
-        "Logout error:",
-        error
-      );
+      console.log("Logout error:", error);
     }
 
     dispatch(removeUser());
@@ -269,52 +199,32 @@ export default function Navbar() {
     setMobileOpen(false);
     setLogoutConfirmOpen(false);
 
-    toast.success(
-      "Logout successful"
-    );
+    toast.success("Logout successful");
 
     navigate("/login");
   };
 
   const isActive = (path) => {
     if (path === "/") {
-      return (
-        location.pathname === "/"
-      );
+      return location.pathname === "/";
     }
 
-    return location.pathname.startsWith(
-      path
-    );
+    return location.pathname.startsWith(path);
   };
 
   return (
     <>
       <header className="jbi-navbar">
         <div className="jbi-navbar-inner">
-
-          <Link
-            to="/"
-            className="jbi-brand"
-            onClick={
-              closeMobileMenu
-            }
-          >
-            <img
-              src="/Just-book.png"
-              alt="Just Book It"
-              className="jbi-logo"
-            />
+          <Link to="/" className="jbi-brand" onClick={closeMobileMenu}>
+            <img src="/Just-book.png" alt="Just Book It" className="jbi-logo" />
           </Link>
 
           <nav className="jbi-desktop-nav">
-
             <Link
               to="/"
               className={`jbi-nav-link ${
-                isActive("/")
-                  ? "jbi-nav-active"
-                  : ""
+                isActive("/") ? "jbi-nav-active" : ""
               }`}
             >
               Home
@@ -323,9 +233,7 @@ export default function Navbar() {
             <Link
               to="/products"
               className={`jbi-nav-link ${
-                isActive("/products")
-                  ? "jbi-nav-active"
-                  : ""
+                isActive("/products") ? "jbi-nav-active" : ""
               }`}
             >
               Products
@@ -334,9 +242,7 @@ export default function Navbar() {
             <Link
               to="/categories"
               className={`jbi-nav-link ${
-                isActive("/categories")
-                  ? "jbi-nav-active"
-                  : ""
+                isActive("/categories") ? "jbi-nav-active" : ""
               }`}
             >
               Categories
@@ -346,37 +252,29 @@ export default function Navbar() {
               <Link
                 to="/orders"
                 className={`jbi-nav-link ${
-                  isActive("/orders")
-                    ? "jbi-nav-active"
-                    : ""
+                  isActive("/orders") ? "jbi-nav-active" : ""
                 }`}
               >
                 Orders
               </Link>
             )}
-
           </nav>
 
           <div className="jbi-navbar-actions">
-
             <button
               type="button"
               className="jbi-location-box"
-              onClick={
-                openLocationSelector
-              }
+              onClick={openLocationSelector}
             >
               <MapPin size={18} />
 
               <span>
-                {selectedLocation.city},{" "}
-                {selectedLocation.state}
+                {selectedLocation.city}, {selectedLocation.state}
               </span>
             </button>
 
             {user ? (
               <>
-
                 <button
                   type="button"
                   className="jbi-icon-button"
@@ -389,11 +287,7 @@ export default function Navbar() {
                   type="button"
                   className="jbi-icon-button"
                   title="Wishlist"
-                  onClick={() =>
-                    navigate(
-                      "/wishlist"
-                    )
-                  }
+                  onClick={() => navigate("/wishlist")}
                 >
                   <Heart size={20} />
                 </button>
@@ -402,53 +296,31 @@ export default function Navbar() {
                   type="button"
                   className="jbi-icon-button jbi-cart-button"
                   title="Cart"
-                  onClick={() =>
-                    navigate("/cart")
-                  }
+                  onClick={() => navigate("/cart")}
                 >
-                  <ShoppingCart
-                    size={20}
-                  />
+                  <ShoppingCart size={20} />
 
                   {cartCount > 0 && (
                     <span className="jbi-cart-badge">
-                      {cartCount > 99
-                        ? "99+"
-                        : cartCount}
+                      {cartCount > 99 ? "99+" : cartCount}
                     </span>
                   )}
                 </button>
 
-                <div
-                  className="jbi-profile-wrapper"
-                  ref={profileRef}
-                >
-
+                <div className="jbi-profile-wrapper" ref={profileRef}>
                   <button
                     type="button"
                     className="jbi-avatar-button"
-                    onClick={() =>
-                      setProfileOpen(
-                        (prev) =>
-                          !prev
-                      )
-                    }
+                    onClick={() => setProfileOpen((prev) => !prev)}
                     title="Profile"
                   >
-                    {user?.firstName
-                      ?.charAt(0)
-                      ?.toUpperCase() ||
-                      "M"}
+                    {user?.firstName?.charAt(0)?.toUpperCase() || "M"}
                   </button>
 
                   {profileOpen && (
                     <div className="jbi-profile-dropdown">
-
                       <div className="jbi-profile-name">
-                        {user?.firstName ||
-                          "User"}{" "}
-                        {user?.lastName ||
-                          ""}
+                        {user?.firstName || "User"} {user?.lastName || ""}
                       </div>
 
                       <div className="jbi-dropdown-divider" />
@@ -456,249 +328,146 @@ export default function Navbar() {
                       <Link
                         to="/profile"
                         className="jbi-dropdown-item"
-                        onClick={() =>
-                          setProfileOpen(
-                            false
-                          )
-                        }
+                        onClick={() => setProfileOpen(false)}
                       >
                         <User size={18} />
 
-                        <span>
-                          My Profile
-                        </span>
+                        <span>My Profile</span>
                       </Link>
 
                       <Link
                         to="/wishlist"
                         className="jbi-dropdown-item"
-                        onClick={() =>
-                          setProfileOpen(
-                            false
-                          )
-                        }
+                        onClick={() => setProfileOpen(false)}
                       >
                         <Heart size={18} />
 
-                        <span>
-                          Wishlist
-                        </span>
+                        <span>Wishlist</span>
                       </Link>
 
                       <Link
                         to="/orders"
                         className="jbi-dropdown-item"
-                        onClick={() =>
-                          setProfileOpen(
-                            false
-                          )
-                        }
+                        onClick={() => setProfileOpen(false)}
                       >
-                        <Package
-                          size={18}
-                        />
+                        <Package size={18} />
 
-                        <span>
-                          My Orders
-                        </span>
+                        <span>My Orders</span>
                       </Link>
-
-                      {isAdmin && (
-                        <Link
-                          to="/admin/dashboard"
-                          className="jbi-dropdown-item"
-                          onClick={() =>
-                            setProfileOpen(
-                              false
-                            )
-                          }
-                        >
-                          <LayoutDashboard
-                            size={18}
-                          />
-
-                          <span>
-                            Admin Panel
-                          </span>
-                        </Link>
-                      )}
 
                       <button
                         type="button"
                         className="jbi-dropdown-item jbi-dropdown-logout"
-                        onClick={
-                          handleLogout
-                        }
+                        onClick={handleLogout}
                       >
-                        <LogOut
-                          size={18}
-                        />
+                        <LogOut size={18} />
 
-                        <span>
-                          Log out
-                        </span>
+                        <span>Log out</span>
                       </button>
-
                     </div>
                   )}
-
                 </div>
-
               </>
             ) : (
-              <Link
-                to="/login"
-                className="jbi-signin-button"
-              >
+              <Link to="/login" className="jbi-signin-button">
                 Sign in
               </Link>
             )}
-
           </div>
 
           <button
             type="button"
             className="jbi-mobile-toggle"
-            onClick={() =>
-              setMobileOpen(
-                (prev) => !prev
-              )
-            }
+            onClick={() => setMobileOpen((prev) => !prev)}
             aria-label="Toggle navigation"
           >
-            {mobileOpen ? (
-              <X size={28} />
-            ) : (
-              <Menu size={28} />
-            )}
+            {mobileOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
-
         </div>
 
         <div
           className={`jbi-mobile-menu ${
-            mobileOpen
-              ? "jbi-mobile-menu-open"
-              : ""
+            mobileOpen ? "jbi-mobile-menu-open" : ""
           }`}
         >
-
           <button
             type="button"
             className="jbi-mobile-location"
-            onClick={
-              openLocationSelector
-            }
+            onClick={openLocationSelector}
           >
             <MapPin size={21} />
 
             <div>
-              <strong>
-                Location
-              </strong>
+              <strong>Location</strong>
 
               <span>
-                {selectedLocation.city},{" "}
-                {selectedLocation.state}
+                {selectedLocation.city}, {selectedLocation.state}
               </span>
             </div>
           </button>
 
           <nav className="jbi-mobile-nav">
-
             <Link
               to="/"
               className={`jbi-mobile-link ${
-                isActive("/")
-                  ? "jbi-mobile-link-active"
-                  : ""
+                isActive("/") ? "jbi-mobile-link-active" : ""
               }`}
-              onClick={
-                closeMobileMenu
-              }
+              onClick={closeMobileMenu}
             >
               <Home size={21} />
 
-              <span>
-                Home
-              </span>
+              <span>Home</span>
             </Link>
 
             <Link
               to="/products"
               className={`jbi-mobile-link ${
-                isActive("/products")
-                  ? "jbi-mobile-link-active"
-                  : ""
+                isActive("/products") ? "jbi-mobile-link-active" : ""
               }`}
-              onClick={
-                closeMobileMenu
-              }
+              onClick={closeMobileMenu}
             >
-              <ShoppingCart
-                size={21}
-              />
+              <ShoppingCart size={21} />
 
-              <span>
-                Products
-              </span>
+              <span>Products</span>
             </Link>
 
             {user && (
               <Link
                 to="/wishlist"
                 className={`jbi-mobile-link ${
-                  isActive("/wishlist")
-                    ? "jbi-mobile-link-active"
-                    : ""
+                  isActive("/wishlist") ? "jbi-mobile-link-active" : ""
                 }`}
-                onClick={
-                  closeMobileMenu
-                }
+                onClick={closeMobileMenu}
               >
                 <Heart size={21} />
 
-                <span>
-                  Wishlist
-                </span>
+                <span>Wishlist</span>
               </Link>
             )}
 
             <Link
               to="/categories"
               className={`jbi-mobile-link ${
-                isActive("/categories")
-                  ? "jbi-mobile-link-active"
-                  : ""
+                isActive("/categories") ? "jbi-mobile-link-active" : ""
               }`}
-              onClick={
-                closeMobileMenu
-              }
+              onClick={closeMobileMenu}
             >
               <Grid2X2 size={21} />
 
-              <span>
-                Categories
-              </span>
+              <span>Categories</span>
             </Link>
 
             {user && (
               <Link
                 to="/orders"
                 className={`jbi-mobile-link ${
-                  isActive("/orders")
-                    ? "jbi-mobile-link-active"
-                    : ""
+                  isActive("/orders") ? "jbi-mobile-link-active" : ""
                 }`}
-                onClick={
-                  closeMobileMenu
-                }
+                onClick={closeMobileMenu}
               >
                 <Package size={21} />
 
-                <span>
-                  Orders
-                </span>
+                <span>Orders</span>
               </Link>
             )}
 
@@ -706,23 +475,15 @@ export default function Navbar() {
               <Link
                 to="/cart"
                 className={`jbi-mobile-link ${
-                  isActive("/cart")
-                    ? "jbi-mobile-link-active"
-                    : ""
+                  isActive("/cart") ? "jbi-mobile-link-active" : ""
                 }`}
-                onClick={
-                  closeMobileMenu
-                }
+                onClick={closeMobileMenu}
               >
-                <ShoppingCart
-                  size={21}
-                />
+                <ShoppingCart size={21} />
 
                 <span>
                   Cart
-                  {cartCount > 0
-                    ? ` (${cartCount})`
-                    : ""}
+                  {cartCount > 0 ? ` (${cartCount})` : ""}
                 </span>
               </Link>
             )}
@@ -731,148 +492,81 @@ export default function Navbar() {
               <Link
                 to="/profile"
                 className={`jbi-mobile-link ${
-                  isActive("/profile")
-                    ? "jbi-mobile-link-active"
-                    : ""
+                  isActive("/profile") ? "jbi-mobile-link-active" : ""
                 }`}
-                onClick={
-                  closeMobileMenu
-                }
+                onClick={closeMobileMenu}
               >
                 <User size={21} />
 
-                <span>
-                  My Profile
-                </span>
+                <span>My Profile</span>
               </Link>
             )}
-
-            {isAdmin && (
-              <Link
-                to="/admin/dashboard"
-                className={`jbi-mobile-link ${
-                  isActive("/admin")
-                    ? "jbi-mobile-link-active"
-                    : ""
-                }`}
-                onClick={
-                  closeMobileMenu
-                }
-              >
-                <LayoutDashboard
-                  size={21}
-                />
-
-                <span>
-                  Admin Panel
-                </span>
-              </Link>
-            )}
-
           </nav>
 
           {user ? (
             <button
               type="button"
               className="jbi-mobile-signin"
-              onClick={
-                handleLogout
-              }
+              onClick={handleLogout}
             >
               <LogOut size={19} />
-
               Log out
             </button>
           ) : (
             <Link
               to="/login"
               className="jbi-mobile-signin"
-              onClick={
-                closeMobileMenu
-              }
+              onClick={closeMobileMenu}
             >
               Sign in
             </Link>
           )}
-
         </div>
-
       </header>
 
       {locationOpen && (
-        <div
-          className="jbi-location-overlay"
-          onClick={
-            closeLocationSelector
-          }
-        >
+        <div className="jbi-location-overlay" onClick={closeLocationSelector}>
           <div
             className="jbi-location-modal"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
+            onClick={(e) => e.stopPropagation()}
           >
-
             <div className="jbi-location-header">
-
-              <h3>
-                Choose location
-              </h3>
+              <h3>Choose location</h3>
 
               <button
                 type="button"
-                onClick={
-                  closeLocationSelector
-                }
-                disabled={
-                  detectingLocation
-                }
+                onClick={closeLocationSelector}
+                disabled={detectingLocation}
                 aria-label="Close"
               >
                 <X size={18} />
               </button>
-
             </div>
 
             <button
               type="button"
               className="jbi-current-location"
               onClick={() => {
-                setDetectingLocation(
-                  true
-                );
+                setDetectingLocation(true);
 
                 setTimeout(() => {
                   setSelectedLocation({
                     city: "Indore",
-                    state:
-                      "Madhya Pradesh",
-                    country:
-                      "India",
+                    state: "Madhya Pradesh",
+                    country: "India",
                   });
 
-                  setDetectingLocation(
-                    false
-                  );
+                  setDetectingLocation(false);
 
-                  setLocationOpen(
-                    false
-                  );
+                  setLocationOpen(false);
 
-                  toast.success(
-                    "Location detected successfully"
-                  );
+                  toast.success("Location detected successfully");
                 }, 700);
               }}
-              disabled={
-                detectingLocation
-              }
+              disabled={detectingLocation}
             >
-
               <div className="jbi-current-location-icon">
-                <Navigation
-                  size={19}
-                />
+                <Navigation size={19} />
               </div>
 
               <div>
@@ -888,161 +582,98 @@ export default function Navbar() {
                     : "Detect from your device"}
                 </span>
               </div>
-
             </button>
 
             <div className="jbi-location-search">
-
               <input
                 type="text"
                 placeholder="Search city or state..."
-                value={
-                  locationSearch
-                }
-                onChange={(e) =>
-                  setLocationSearch(
-                    e.target.value
-                  )
-                }
+                value={locationSearch}
+                onChange={(e) => setLocationSearch(e.target.value)}
                 autoFocus
               />
-
             </div>
 
             {!locationSearch && (
               <div className="jbi-popular-section">
-
-                <div className="jbi-location-title">
-                  POPULAR CITIES
-                </div>
+                <div className="jbi-location-title">POPULAR CITIES</div>
 
                 <div className="jbi-popular-list">
-
-                  {popularLocations.map(
-                    (item) => (
-                      <button
-                        type="button"
-                        key={
-                          item.city
-                        }
-                        className={`jbi-popular-city ${
-                          selectedLocation.city ===
-                          item.city
-                            ? "jbi-selected-city"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          handleLocationSelect(
-                            item
-                          )
-                        }
-                      >
-                        {item.city}
-                      </button>
-                    )
-                  )}
-
+                  {popularLocations.map((item) => (
+                    <button
+                      type="button"
+                      key={item.city}
+                      className={`jbi-popular-city ${
+                        selectedLocation.city === item.city
+                          ? "jbi-selected-city"
+                          : ""
+                      }`}
+                      onClick={() => handleLocationSelect(item)}
+                    >
+                      {item.city}
+                    </button>
+                  ))}
                 </div>
-
               </div>
             )}
 
             <div className="jbi-all-cities">
-
               <div className="jbi-location-title">
-                {locationSearch
-                  ? "SEARCH RESULTS"
-                  : "ALL CITIES"}
+                {locationSearch ? "SEARCH RESULTS" : "ALL CITIES"}
               </div>
 
               <div className="jbi-location-list">
+                {filteredLocations.length > 0 ? (
+                  filteredLocations.map((item) => (
+                    <button
+                      type="button"
+                      key={`${item.city}-${item.state}`}
+                      className={`jbi-location-option ${
+                        selectedLocation.city === item.city &&
+                        selectedLocation.state === item.state
+                          ? "jbi-location-option-selected"
+                          : ""
+                      }`}
+                      onClick={() => handleLocationSelect(item)}
+                    >
+                      <div>
+                        <strong>{item.city}</strong>
 
-                {filteredLocations.length >
-                0 ? (
-                  filteredLocations.map(
-                    (item) => (
-                      <button
-                        type="button"
-                        key={`${item.city}-${item.state}`}
-                        className={`jbi-location-option ${
-                          selectedLocation.city ===
-                            item.city &&
-                          selectedLocation.state ===
-                            item.state
-                            ? "jbi-location-option-selected"
-                            : ""
-                        }`}
-                        onClick={() =>
-                          handleLocationSelect(
-                            item
-                          )
-                        }
-                      >
+                        <span>
+                          {item.state}, {item.country}
+                        </span>
+                      </div>
 
-                        <div>
-                          <strong>
-                            {item.city}
-                          </strong>
-
-                          <span>
-                            {item.state},{" "}
-                            {item.country}
-                          </span>
-                        </div>
-
-                        {selectedLocation.city ===
-                          item.city &&
-                          selectedLocation.state ===
-                            item.state && (
-                            <span className="jbi-location-check">
-                              ✓
-                            </span>
-                          )}
-
-                      </button>
-                    )
-                  )
+                      {selectedLocation.city === item.city &&
+                        selectedLocation.state === item.state && (
+                          <span className="jbi-location-check">✓</span>
+                        )}
+                    </button>
+                  ))
                 ) : (
-                  <div className="jbi-no-location">
-                    No locations found.
-                  </div>
+                  <div className="jbi-no-location">No locations found.</div>
                 )}
-
               </div>
-
             </div>
-
           </div>
         </div>
       )}
 
       {logoutConfirmOpen && (
-        <div
-          className="jbi-logout-overlay"
-          onClick={cancelLogout}
-        >
+        <div className="jbi-logout-overlay" onClick={cancelLogout}>
           <div
             className="jbi-logout-modal"
-            onClick={(e) =>
-              e.stopPropagation()
-            }
+            onClick={(e) => e.stopPropagation()}
           >
-
             <div className="jbi-logout-icon">
               <LogOut size={24} />
             </div>
 
-            <h3>
-              Logout Confirmation
-            </h3>
+            <h3>Logout Confirmation</h3>
 
-            <p>
-              Are you sure you want to logout
-              from your account?
-            </p>
+            <p>Are you sure you want to logout from your account?</p>
 
             <div className="jbi-logout-actions">
-
               <button
                 type="button"
                 className="jbi-logout-cancel"
@@ -1058,13 +689,10 @@ export default function Navbar() {
               >
                 Logout
               </button>
-
             </div>
-
           </div>
         </div>
       )}
-
     </>
   );
 }
