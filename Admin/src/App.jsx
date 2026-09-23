@@ -4,7 +4,6 @@ import "./App.css";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import AdminLogin from "./components/pages/AdminLogin";
 import AdminLayout from "./components/pages/AdminLayout";
 import AdminDashboard from "./components/pages/AdminDashboard";
@@ -21,7 +20,6 @@ import AddCategory from "./components/pages/AddCategory";
 import AdminSubcategories from "./components/pages/AdminSubcategories";
 import AdminAttributes from "./components/pages/AdminAttributes";
 import AdminAttributeValues from "./components/pages/AdminAttributeValues";
-
 function App() {
   return (
     <BrowserRouter>
