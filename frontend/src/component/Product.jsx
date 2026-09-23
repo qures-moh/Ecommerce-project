@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
 import { toast } from "react-toastify";
 
-import { getProducts } from "../utils/productSlice";
 import { addToCart } from "../utils/cartSlice";
 import { toggleWishlist } from "../utils/wishlist";
 import api from "../utils/axios";
@@ -114,36 +113,40 @@ const Products = () => {
     (state) => state.wishlist || state.whishlist || []
   );
 
-  const {
-    products = [],
-    loading,
-    error,
-  } = useSelector((state) => state.products);
-
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
 
   useEffect(() => {
-    console.log("API URL:", api.defaults.baseURL);
-
-    const testApi = async () => {
+    const fetchProducts = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
         const response = await api.get("/products", {
           params: {
             category,
           },
         });
 
-        console.log("DIRECT API RESPONSE:", response.data);
+        setProducts(response.data.products || []);
       } catch (error) {
-        console.error("DIRECT API ERROR:", error);
+        console.error("Products API Error:", error);
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch products"
+        );
+        setProducts([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    testApi();
-
-    dispatch(getProducts(category));
-  }, [dispatch, category]);
+    fetchProducts();
+  }, [category]);
 
   const categories = [
     "All",
@@ -291,17 +294,11 @@ const Products = () => {
           <div className="catalog-grid">
             {sortedProducts.map((product) => {
               const variant = getVariant(product);
-
               const image = variant?.images?.[0] || "";
-
               const finalPrice = getFinalPrice(variant);
-
               const originalPrice = Number(variant?.price) || 0;
-
               const hasDiscount = finalPrice < originalPrice;
-
               const discountText = getDiscountText(variant);
-
               const categoryName = getCategoryName(product.category);
 
               const isWishlisted = wishlist.some(
@@ -373,8 +370,7 @@ const Products = () => {
                     <h3>{product.name}</h3>
 
                     {variant &&
-                      getAttributes(variant.attributes).length >
-                        0 && (
+                      getAttributes(variant.attributes).length > 0 && (
                         <div className="catalog-attributes">
                           {getAttributes(variant.attributes)
                             .slice(0, 3)
