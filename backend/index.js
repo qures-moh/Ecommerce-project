@@ -20,6 +20,7 @@ const allowedOrigins = [
   
  
   "https://ecommerce-frontend-eg4r.onrender.com",
+  "https://ecomerce-admin-9qwc.onrender.com"
 ];
 
 app.use(
