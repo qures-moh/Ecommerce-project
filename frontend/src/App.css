@@ -33840,3 +33840,61 @@ body {
     margin-bottom: 12px;
   }
 }
+.subcategory-container {
+  width: 100%;
+}
+
+.subcategory-breadcrumb {
+  margin-bottom: 20px;
+}
+
+.subcategory-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  width: fit-content;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 18px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.subcategory-heading {
+  position: relative;
+}
+
+.subcategory-heading-content {
+  width: 100%;
+}
+
+.subcategory-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.subcategory-count {
+  width: fit-content;
+  margin-left: auto;
+  margin-top: -42px;
+}
+
+@media (max-width: 768px) {
+  .subcategory-back {
+    margin-left: auto;
+    margin-right: 0;
+  }
+
+  .subcategory-heading {
+    margin-top: 25px;
+  }
+
+  .subcategory-count {
+    margin-left: 0;
+    margin-top: 18px;
+  }
+}
