@@ -206,6 +206,10 @@ const Products = () => {
     return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
 
+  useEffect(() => {
+  console.log("API URL:", api.defaults.baseURL);
+  dispatch(getProducts(category));
+}, [dispatch, category]);
   return (
     <div className="catalog-page">
       <section className="catalog-header">
