@@ -1,9 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
 import { useDispatch, useSelector } from "react-redux";
-
 import { useState, useRef, useEffect } from "react";
-
+import { NavLink } from "react-router-dom";
 import {
   MapPin,
   Home,
@@ -17,6 +15,7 @@ import {
   LogOut,
   Navigation,
   Package,
+  Search,
 } from "lucide-react";
 
 import api from "../utils/axios";
@@ -31,11 +30,9 @@ export default function Navbar() {
   const dispatch = useDispatch();
 
   const [mobileOpen, setMobileOpen] = useState(false);
-
   const [profileOpen, setProfileOpen] = useState(false);
 
   const [locationOpen, setLocationOpen] = useState(false);
-
   const [locationSearch, setLocationSearch] = useState("");
 
   const [selectedLocation, setSelectedLocation] = useState({
@@ -45,17 +42,24 @@ export default function Navbar() {
   });
 
   const [detectingLocation, setDetectingLocation] = useState(false);
-
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
+  const [search, setSearch] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const profileRef = useRef(null);
-
+  const searchRef = useRef(null);
+const desktopSearchRef = useRef(null);
+const mobileSearchRef = useRef(null);
   const user = useSelector((store) => store.user);
-
   const cart = useSelector((store) => store.cart);
 
   const cartCount = Array.isArray(cart)
-    ? cart.reduce((total, item) => total + (Number(item.quantity) || 1), 0)
+    ? cart.reduce(
+        (total, item) => total + (Number(item.quantity) || 1),
+        0
+      )
     : 0;
 
   const locations = [
@@ -125,31 +129,77 @@ export default function Navbar() {
   });
 
   const popularLocations = locations.filter(
-    (item) => item.city === "Bengaluru",
+    (item) => item.city === "Bengaluru"
   );
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target)
+      ) {
         setProfileOpen(false);
+      }
+
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "click",
+        handleClickOutside
+      );
     };
   }, []);
 
   useEffect(() => {
     document.body.style.overflow =
-      mobileOpen || locationOpen || logoutConfirmOpen ? "hidden" : "";
+      mobileOpen || locationOpen || logoutConfirmOpen
+        ? "hidden"
+        : "";
 
     return () => {
       document.body.style.overflow = "";
     };
   }, [mobileOpen, locationOpen, logoutConfirmOpen]);
+
+  useEffect(() => {
+    const searchValue = search.trim();
+
+    if (!searchValue) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await api.get("/products", {
+          params: {
+            search: searchValue,
+            page: 1,
+            limit: 5,
+          },
+        });
+
+        setSuggestions(response.data.products || []);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error("PRODUCT SEARCH ERROR:", error);
+        setSuggestions([]);
+        setShowSuggestions(true);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
@@ -212,12 +262,163 @@ export default function Navbar() {
     return location.pathname.startsWith(path);
   };
 
+  const getProductImage = (product) => {
+    const image =
+      product?.displayImages?.[0] ||
+      product?.variants?.[0]?.images?.[0] ||
+      product?.images?.[0] ||
+      product?.image;
+
+    if (!image) {
+      return null;
+    }
+
+    if (image.startsWith("http")) {
+      return image;
+    }
+
+    const baseURL = api.defaults.baseURL || "";
+    const cleanBaseURL = baseURL.replace(/\/api\/?$/, "");
+
+    return `${cleanBaseURL}/${image.replace(/^\/+/, "")}`;
+  };
+
+  const closeProductSearch = () => {
+    setSearch("");
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setMobileOpen(false);
+  };
+  const renderSearchSuggestions = () => {
+  if (!showSuggestions || !search.trim()) {
+    return null;
+  }
+
+  return (
+    <div className="jbi-search-suggestions">
+      {suggestions.length === 0 ? (
+        <div className="jbi-search-no-results">
+          No products found
+        </div>
+      ) : (
+        suggestions.map((product) => {
+          const image = getProductImage(product);
+
+          return (
+            <Link
+              key={product._id}
+              to={`/products/${product._id}`}
+              className="jbi-search-suggestion"
+              onClick={() => {
+                setSearch("");
+                setSuggestions([]);
+                setShowSuggestions(false);
+                setMobileOpen(false);
+              }}
+            >
+              <div className="jbi-search-image">
+                {image ? (
+                  <img
+                    src={image}
+                    alt={product.name}
+                  />
+                ) : (
+                  <span>
+                    {product.name
+                      ?.charAt(0)
+                      ?.toUpperCase() || "P"}
+                  </span>
+                )}
+              </div>
+
+              <div className="jbi-search-product-info">
+                <strong>{product.name}</strong>
+
+                <span>
+                  ₹
+                  {Math.round(
+                    Number(product.displayPrice || 0)
+                  ).toLocaleString("en-IN")}
+                </span>
+              </div>
+            </Link>
+          );
+        })
+      )}
+    </div>
+  );
+};
+
+  // const renderSearchSuggestions = () => {
+  //   if (!showSuggestions || !search.trim()) {
+  //     return null;
+  //   }
+
+  //   return (
+  //     <div className="jbi-search-suggestions">
+  //       {suggestions.length === 0 ? (
+  //         <div className="jbi-search-no-results">
+  //           No products found
+  //         </div>
+  //       ) : (
+  //         suggestions.map((product) => {
+  //           const image = getProductImage(product);
+
+  //           const price = Math.round(
+  //             Number(product.displayPrice || 0)
+  //           );
+
+  //           return (
+  //             <Link
+  //               key={product._id}
+  //               to={`/products/${product._id}`}
+  //               className="jbi-search-suggestion"
+  //               onClick={closeProductSearch}
+  //             >
+  //               <div className="jbi-search-image">
+  //                 {image ? (
+  //                   <img
+  //                     src={image}
+  //                     alt={product.name}
+  //                   />
+  //                 ) : (
+  //                   <span>
+  //                     {product.name
+  //                       ?.charAt(0)
+  //                       ?.toUpperCase() || "P"}
+  //                   </span>
+  //                 )}
+  //               </div>
+
+  //               <div className="jbi-search-product-info">
+  //                 <strong>{product.name}</strong>
+
+  //                 <span>
+  //                   ₹{price.toLocaleString("en-IN")}
+  //                 </span>
+  //               </div>
+  //             </Link>
+  //           );
+  //         })
+  //       )}
+  //     </div>
+  //   );
+  // };
+
   return (
     <>
       <header className="jbi-navbar">
         <div className="jbi-navbar-inner">
-          <Link to="/" className="jbi-brand" onClick={closeMobileMenu}>
-            <img src="/Just-book.png" alt="Just Book It" className="jbi-logo" />
+          <Link
+            to="/"
+            className="jbi-brand"
+            onClick={closeMobileMenu}
+          >
+            <img
+              src="/Just-book.png"
+              alt="Just Book It"
+              className="jbi-logo"
+            />
           </Link>
 
           <nav className="jbi-desktop-nav">
@@ -233,7 +434,9 @@ export default function Navbar() {
             <Link
               to="/products"
               className={`jbi-nav-link ${
-                isActive("/products") ? "jbi-nav-active" : ""
+                isActive("/products")
+                  ? "jbi-nav-active"
+                  : ""
               }`}
             >
               Products
@@ -242,7 +445,9 @@ export default function Navbar() {
             <Link
               to="/categories"
               className={`jbi-nav-link ${
-                isActive("/categories") ? "jbi-nav-active" : ""
+                isActive("/categories")
+                  ? "jbi-nav-active"
+                  : ""
               }`}
             >
               Categories
@@ -252,13 +457,41 @@ export default function Navbar() {
               <Link
                 to="/orders"
                 className={`jbi-nav-link ${
-                  isActive("/orders") ? "jbi-nav-active" : ""
+                  isActive("/orders")
+                    ? "jbi-nav-active"
+                    : ""
                 }`}
               >
                 Orders
               </Link>
             )}
           </nav>
+
+          <div
+            className="jbi-navbar-search-wrapper"
+            ref={desktopSearchRef}
+          >
+            <div className="jbi-navbar-search">
+              <Search size={18} />
+
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (search.trim()) {
+                    setShowSuggestions(true);
+                  }
+                }}
+              />
+            </div>
+
+            {renderSearchSuggestions()}
+          </div>
 
           <div className="jbi-navbar-actions">
             <button
@@ -269,7 +502,8 @@ export default function Navbar() {
               <MapPin size={18} />
 
               <span>
-                {selectedLocation.city}, {selectedLocation.state}
+                {selectedLocation.city},{" "}
+                {selectedLocation.state}
               </span>
             </button>
 
@@ -302,25 +536,37 @@ export default function Navbar() {
 
                   {cartCount > 0 && (
                     <span className="jbi-cart-badge">
-                      {cartCount > 99 ? "99+" : cartCount}
+                      {cartCount > 99
+                        ? "99+"
+                        : cartCount}
                     </span>
                   )}
                 </button>
 
-                <div className="jbi-profile-wrapper" ref={profileRef}>
+                <div
+                  className="jbi-profile-wrapper"
+                  ref={profileRef}
+                >
                   <button
                     type="button"
                     className="jbi-avatar-button"
-                    onClick={() => setProfileOpen((prev) => !prev)}
+                    onClick={() =>
+                      setProfileOpen(
+                        (prev) => !prev
+                      )
+                    }
                     title="Profile"
                   >
-                    {user?.firstName?.charAt(0)?.toUpperCase() || "M"}
+                    {user?.firstName
+                      ?.charAt(0)
+                      ?.toUpperCase() || "M"}
                   </button>
 
                   {profileOpen && (
                     <div className="jbi-profile-dropdown">
                       <div className="jbi-profile-name">
-                        {user?.firstName || "User"} {user?.lastName || ""}
+                        {user?.firstName || "User"}{" "}
+                        {user?.lastName || ""}
                       </div>
 
                       <div className="jbi-dropdown-divider" />
@@ -328,7 +574,9 @@ export default function Navbar() {
                       <Link
                         to="/profile"
                         className="jbi-dropdown-item"
-                        onClick={() => setProfileOpen(false)}
+                        onClick={() =>
+                          setProfileOpen(false)
+                        }
                       >
                         <User size={18} />
 
@@ -338,7 +586,9 @@ export default function Navbar() {
                       <Link
                         to="/wishlist"
                         className="jbi-dropdown-item"
-                        onClick={() => setProfileOpen(false)}
+                        onClick={() =>
+                          setProfileOpen(false)
+                        }
                       >
                         <Heart size={18} />
 
@@ -348,7 +598,9 @@ export default function Navbar() {
                       <Link
                         to="/orders"
                         className="jbi-dropdown-item"
-                        onClick={() => setProfileOpen(false)}
+                        onClick={() =>
+                          setProfileOpen(false)
+                        }
                       >
                         <Package size={18} />
 
@@ -369,7 +621,10 @@ export default function Navbar() {
                 </div>
               </>
             ) : (
-              <Link to="/login" className="jbi-signin-button">
+              <Link
+                to="/login"
+                className="jbi-signin-button"
+              >
                 Sign in
               </Link>
             )}
@@ -378,18 +633,52 @@ export default function Navbar() {
           <button
             type="button"
             className="jbi-mobile-toggle"
-            onClick={() => setMobileOpen((prev) => !prev)}
+            onClick={() =>
+              setMobileOpen((prev) => !prev)
+            }
             aria-label="Toggle navigation"
           >
-            {mobileOpen ? <X size={28} /> : <Menu size={28} />}
+            {mobileOpen ? (
+              <X size={28} />
+            ) : (
+              <Menu size={28} />
+            )}
           </button>
         </div>
 
         <div
           className={`jbi-mobile-menu ${
-            mobileOpen ? "jbi-mobile-menu-open" : ""
+            mobileOpen
+              ? "jbi-mobile-menu-open"
+              : ""
           }`}
         >
+          <div
+            className="jbi-mobile-search-wrapper"
+            ref={mobileSearchRef}
+          >
+            <div className="jbi-mobile-search">
+              <Search size={19} />
+
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (search.trim()) {
+                    setShowSuggestions(true);
+                  }
+                }}
+              />
+            </div>
+
+            {renderSearchSuggestions()}
+          </div>
+
           <button
             type="button"
             className="jbi-mobile-location"
@@ -401,7 +690,8 @@ export default function Navbar() {
               <strong>Location</strong>
 
               <span>
-                {selectedLocation.city}, {selectedLocation.state}
+                {selectedLocation.city},{" "}
+                {selectedLocation.state}
               </span>
             </div>
           </button>
@@ -410,7 +700,9 @@ export default function Navbar() {
             <Link
               to="/"
               className={`jbi-mobile-link ${
-                isActive("/") ? "jbi-mobile-link-active" : ""
+                isActive("/")
+                  ? "jbi-mobile-link-active"
+                  : ""
               }`}
               onClick={closeMobileMenu}
             >
@@ -422,7 +714,9 @@ export default function Navbar() {
             <Link
               to="/products"
               className={`jbi-mobile-link ${
-                isActive("/products") ? "jbi-mobile-link-active" : ""
+                isActive("/products")
+                  ? "jbi-mobile-link-active"
+                  : ""
               }`}
               onClick={closeMobileMenu}
             >
@@ -435,7 +729,9 @@ export default function Navbar() {
               <Link
                 to="/wishlist"
                 className={`jbi-mobile-link ${
-                  isActive("/wishlist") ? "jbi-mobile-link-active" : ""
+                  isActive("/wishlist")
+                    ? "jbi-mobile-link-active"
+                    : ""
                 }`}
                 onClick={closeMobileMenu}
               >
@@ -448,7 +744,9 @@ export default function Navbar() {
             <Link
               to="/categories"
               className={`jbi-mobile-link ${
-                isActive("/categories") ? "jbi-mobile-link-active" : ""
+                isActive("/categories")
+                  ? "jbi-mobile-link-active"
+                  : ""
               }`}
               onClick={closeMobileMenu}
             >
@@ -461,7 +759,9 @@ export default function Navbar() {
               <Link
                 to="/orders"
                 className={`jbi-mobile-link ${
-                  isActive("/orders") ? "jbi-mobile-link-active" : ""
+                  isActive("/orders")
+                    ? "jbi-mobile-link-active"
+                    : ""
                 }`}
                 onClick={closeMobileMenu}
               >
@@ -475,7 +775,9 @@ export default function Navbar() {
               <Link
                 to="/cart"
                 className={`jbi-mobile-link ${
-                  isActive("/cart") ? "jbi-mobile-link-active" : ""
+                  isActive("/cart")
+                    ? "jbi-mobile-link-active"
+                    : ""
                 }`}
                 onClick={closeMobileMenu}
               >
@@ -483,7 +785,9 @@ export default function Navbar() {
 
                 <span>
                   Cart
-                  {cartCount > 0 ? ` (${cartCount})` : ""}
+                  {cartCount > 0
+                    ? ` (${cartCount})`
+                    : ""}
                 </span>
               </Link>
             )}
@@ -492,7 +796,9 @@ export default function Navbar() {
               <Link
                 to="/profile"
                 className={`jbi-mobile-link ${
-                  isActive("/profile") ? "jbi-mobile-link-active" : ""
+                  isActive("/profile")
+                    ? "jbi-mobile-link-active"
+                    : ""
                 }`}
                 onClick={closeMobileMenu}
               >
@@ -525,7 +831,10 @@ export default function Navbar() {
       </header>
 
       {locationOpen && (
-        <div className="jbi-location-overlay" onClick={closeLocationSelector}>
+        <div
+          className="jbi-location-overlay"
+          onClick={closeLocationSelector}
+        >
           <div
             className="jbi-location-modal"
             onClick={(e) => e.stopPropagation()}
@@ -557,10 +866,11 @@ export default function Navbar() {
                   });
 
                   setDetectingLocation(false);
-
                   setLocationOpen(false);
 
-                  toast.success("Location detected successfully");
+                  toast.success(
+                    "Location detected successfully"
+                  );
                 }, 700);
               }}
               disabled={detectingLocation}
@@ -589,14 +899,18 @@ export default function Navbar() {
                 type="text"
                 placeholder="Search city or state..."
                 value={locationSearch}
-                onChange={(e) => setLocationSearch(e.target.value)}
+                onChange={(e) =>
+                  setLocationSearch(e.target.value)
+                }
                 autoFocus
               />
             </div>
 
             {!locationSearch && (
               <div className="jbi-popular-section">
-                <div className="jbi-location-title">POPULAR CITIES</div>
+                <div className="jbi-location-title">
+                  POPULAR CITIES
+                </div>
 
                 <div className="jbi-popular-list">
                   {popularLocations.map((item) => (
@@ -604,11 +918,14 @@ export default function Navbar() {
                       type="button"
                       key={item.city}
                       className={`jbi-popular-city ${
-                        selectedLocation.city === item.city
+                        selectedLocation.city ===
+                        item.city
                           ? "jbi-selected-city"
                           : ""
                       }`}
-                      onClick={() => handleLocationSelect(item)}
+                      onClick={() =>
+                        handleLocationSelect(item)
+                      }
                     >
                       {item.city}
                     </button>
@@ -619,7 +936,9 @@ export default function Navbar() {
 
             <div className="jbi-all-cities">
               <div className="jbi-location-title">
-                {locationSearch ? "SEARCH RESULTS" : "ALL CITIES"}
+                {locationSearch
+                  ? "SEARCH RESULTS"
+                  : "ALL CITIES"}
               </div>
 
               <div className="jbi-location-list">
@@ -629,29 +948,40 @@ export default function Navbar() {
                       type="button"
                       key={`${item.city}-${item.state}`}
                       className={`jbi-location-option ${
-                        selectedLocation.city === item.city &&
-                        selectedLocation.state === item.state
+                        selectedLocation.city ===
+                          item.city &&
+                        selectedLocation.state ===
+                          item.state
                           ? "jbi-location-option-selected"
                           : ""
                       }`}
-                      onClick={() => handleLocationSelect(item)}
+                      onClick={() =>
+                        handleLocationSelect(item)
+                      }
                     >
                       <div>
                         <strong>{item.city}</strong>
 
                         <span>
-                          {item.state}, {item.country}
+                          {item.state},{" "}
+                          {item.country}
                         </span>
                       </div>
 
-                      {selectedLocation.city === item.city &&
-                        selectedLocation.state === item.state && (
-                          <span className="jbi-location-check">✓</span>
+                      {selectedLocation.city ===
+                        item.city &&
+                        selectedLocation.state ===
+                          item.state && (
+                          <span className="jbi-location-check">
+                            ✓
+                          </span>
                         )}
                     </button>
                   ))
                 ) : (
-                  <div className="jbi-no-location">No locations found.</div>
+                  <div className="jbi-no-location">
+                    No locations found.
+                  </div>
                 )}
               </div>
             </div>
@@ -660,7 +990,10 @@ export default function Navbar() {
       )}
 
       {logoutConfirmOpen && (
-        <div className="jbi-logout-overlay" onClick={cancelLogout}>
+        <div
+          className="jbi-logout-overlay"
+          onClick={cancelLogout}
+        >
           <div
             className="jbi-logout-modal"
             onClick={(e) => e.stopPropagation()}
@@ -671,7 +1004,10 @@ export default function Navbar() {
 
             <h3>Logout Confirmation</h3>
 
-            <p>Are you sure you want to logout from your account?</p>
+            <p>
+              Are you sure you want to logout from your
+              account?
+            </p>
 
             <div className="jbi-logout-actions">
               <button

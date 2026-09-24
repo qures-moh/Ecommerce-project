@@ -4481,7 +4481,7 @@ body {
 ========================================= */
 
 .admin-topbar {
-  height: 96px;
+  height: 98px;
 
   background: #ffffff;
 
@@ -33897,4 +33897,362 @@ body {
     margin-left: 0;
     margin-top: 18px;
   }
+}
+.jbi-navbar-search-wrapper {
+  position: relative;
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.jbi-navbar-search {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.jbi-navbar-search svg {
+  color: #7b8190;
+  flex-shrink: 0;
+}
+
+.jbi-navbar-search input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #17233c;
+}
+
+.jbi-navbar-search input::placeholder {
+  color: #9ca3af;
+}
+
+.jbi-search-suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.jbi-search-suggestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: none;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.jbi-search-suggestion:hover {
+  background: #f8f8f8;
+}
+
+.jbi-search-image {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+
+.jbi-search-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jbi-search-image span {
+  font-size: 19px;
+  font-weight: 700;
+  color: #f15a3a;
+}
+
+.jbi-search-product-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.jbi-search-product-info strong {
+  display: block;
+  max-width: 205px;
+  overflow: hidden;
+  color: #17233c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jbi-search-product-info span {
+  color: #f15a3a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jbi-search-no-results {
+  padding: 18px 14px;
+  color: #737987;
+  font-size: 14px;
+  text-align: center;
+}
+
+.jbi-mobile-search-wrapper {
+  position: relative;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.jbi-mobile-search {
+  width: 100%;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.jbi-mobile-search svg {
+  color: #7b8190;
+  flex-shrink: 0;
+}
+
+.jbi-mobile-search input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #17233c;
+  font-size: 14px;
+}
+
+.jbi-mobile-search input::placeholder {
+  color: #9ca3af;
+}
+
+.jbi-mobile-search-wrapper .jbi-search-suggestions {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+@media (max-width: 1200px) {
+  .jbi-navbar-search-wrapper {
+    width: 240px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .jbi-desktop-nav {
+    gap: 12px;
+  }
+
+  .jbi-navbar-search-wrapper {
+    width: 220px;
+  }
+
+  .jbi-location-box {
+    max-width: 150px;
+  }
+}
+
+@media (max-width: 900px) {
+  .jbi-navbar-search-wrapper {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .jbi-mobile-search-wrapper {
+    display: block;
+  }
+
+  .jbi-mobile-search {
+    height: 46px;
+  }
+
+  .jbi-search-suggestion {
+    padding: 10px;
+  }
+
+  .jbi-search-image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .jbi-search-product-info strong {
+    max-width: 190px;
+  }
+}
+.jbi-search-suggestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border: none;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.jbi-search-suggestion:hover {
+  background: #f8f8f8;
+}
+
+.jbi-search-image {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  background: #f7f7f7;
+}
+
+.jbi-search-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jbi-search-image span {
+  font-size: 19px;
+  font-weight: 700;
+  color: #f15a3a;
+}
+
+.jbi-search-product-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.jbi-search-product-info strong {
+  display: block;
+  max-width: 205px;
+  overflow: hidden;
+  color: #17233c;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jbi-search-product-info span {
+  color: #f15a3a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .jbi-search-suggestion {
+    padding: 12px;
+  }
+
+  .jbi-search-product-info strong {
+    max-width: calc(100vw - 125px);
+  }
+}
+.signup-password-toggle {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a96a8;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.signup-password-toggle:hover {
+  color: #ff4d2d;
+}
+
+.signup-password-toggle:focus {
+  outline: none;
+}
+
+.signup-input-error {
+  border-color: #ef4444 !important;
+}
+
+.signup-error {
+  display: block;
+  margin-top: 5px;
+  color: #ef4444;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.signup-submit-error {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+  padding: 11px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.signup-file-upload-error {
+  border-color: #ef4444 !important;
+}
+
+.signup-input-wrapper input {
+  flex: 1;
+  min-width: 0;
+}
+
+.signup-input-wrapper select {
+  flex: 1;
+  min-width: 0;
 }

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import api from "../utils/axios";
-import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import {
   User,
@@ -10,6 +9,8 @@ import {
   Users,
   Camera,
   UserPlus,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function SignUp() {
@@ -25,90 +26,73 @@ export default function SignUp() {
     profileImage: null,
   });
 
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [imagePreview, setImagePreview] = useState("");
-
   const [loading, setLoading] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+
   const validateSignup = () => {
+    const newErrors = {};
+
     const firstName = user.firstName.trim();
     const lastName = user.lastName.trim();
     const email = user.email.trim();
     const password = user.password;
 
     if (!firstName) {
-      toast.error("First name is required");
-      return false;
-    }
-
-    if (firstName.length < 2) {
-      toast.error(
-        "First name must be at least 2 characters"
-      );
-      return false;
-    }
-
-    if (firstName.length > 30) {
-      toast.error(
-        "First name cannot exceed 30 characters"
-      );
-      return false;
+      newErrors.firstName = "First name is required";
+    } else if (firstName.length < 2) {
+      newErrors.firstName = "First name must be at least 2 characters";
+    } else if (firstName.length > 30) {
+      newErrors.firstName = "First name cannot exceed 30 characters";
     }
 
     if (!lastName) {
-      toast.error("Last name is required");
-      return false;
-    }
-
-    if (lastName.length < 2) {
-      toast.error(
-        "Last name must be at least 2 characters"
-      );
-      return false;
-    }
-
-    if (lastName.length > 30) {
-      toast.error(
-        "Last name cannot exceed 30 characters"
-      );
-      return false;
+      newErrors.lastName = "Last name is required";
+    } else if (lastName.length < 2) {
+      newErrors.lastName = "Last name must be at least 2 characters";
+    } else if (lastName.length > 30) {
+      newErrors.lastName = "Last name cannot exceed 30 characters";
     }
 
     if (!email) {
-      toast.error("Email is required");
-      return false;
-    }
+      newErrors.email = "Email is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    const emailRegex =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email");
-      return false;
+      if (!emailRegex.test(email)) {
+        newErrors.email = "Please enter a valid email";
+      }
     }
 
     if (!password) {
-      toast.error("Password is required");
-      return false;
+      newErrors.password = "Password is required";
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
     }
 
-    if (password.length < 6) {
-      toast.error(
-        "Password must be at least 6 characters"
-      );
-      return false;
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     if (!user.dob) {
-      toast.error("Date of birth is required");
-      return false;
+      newErrors.dob = "Date of birth is required";
     }
 
     if (!user.gender) {
-      toast.error("Please select your gender");
-      return false;
+      newErrors.gender = "Please select your gender";
     }
 
-    return true;
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
@@ -118,6 +102,26 @@ export default function SignUp() {
       ...prev,
       [name]: value,
     }));
+
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+
+    setSubmitError("");
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const value = e.target.value;
+
+    setConfirmPassword(value);
+
+    setErrors((prev) => ({
+      ...prev,
+      confirmPassword: "",
+    }));
+
+    setSubmitError("");
   };
 
   const handleFileChange = (e) => {
@@ -128,18 +132,29 @@ export default function SignUp() {
     }
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image");
+      setErrors((prev) => ({
+        ...prev,
+        profileImage: "Please select a valid image",
+      }));
+
       e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error(
-        "Image size should be less than 5MB"
-      );
+      setErrors((prev) => ({
+        ...prev,
+        profileImage: "Image size should be less than 5MB",
+      }));
+
       e.target.value = "";
       return;
     }
+
+    setErrors((prev) => ({
+      ...prev,
+      profileImage: "",
+    }));
 
     setUser((prev) => ({
       ...prev,
@@ -161,6 +176,8 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setSubmitError("");
+
     if (!validateSignup()) {
       return;
     }
@@ -170,47 +187,23 @@ export default function SignUp() {
 
       const formData = new FormData();
 
-      formData.append(
-        "firstName",
-        user.firstName.trim()
-      );
+      formData.append("firstName", user.firstName.trim());
 
-      formData.append(
-        "lastName",
-        user.lastName.trim()
-      );
+      formData.append("lastName", user.lastName.trim());
 
-      formData.append(
-        "email",
-        user.email.trim()
-      );
+      formData.append("email", user.email.trim());
 
-      formData.append(
-        "password",
-        user.password
-      );
+      formData.append("password", user.password);
 
-      formData.append(
-        "dob",
-        user.dob
-      );
+      formData.append("dob", user.dob);
 
-      formData.append(
-        "gender",
-        user.gender
-      );
+      formData.append("gender", user.gender);
 
       if (user.profileImage) {
-        formData.append(
-          "profileImage",
-          user.profileImage
-        );
+        formData.append("profileImage", user.profileImage);
       }
 
-      const res = await api.post(
-        "/user/signup",
-        formData
-      );
+      const res = await api.post("/user/signup", formData);
 
       setUser({
         firstName: "",
@@ -222,23 +215,16 @@ export default function SignUp() {
         profileImage: null,
       });
 
+      setConfirmPassword("");
       setImagePreview("");
-
-      toast.success(
-        res.data.message ||
-          "Signup successful!"
-      );
+      setErrors({});
 
       navigate("/");
     } catch (error) {
-      console.log(
-        "Signup error:",
-        error
-      );
+      console.log("Signup error:", error);
 
-      toast.error(
-        error.response?.data?.message ||
-          "Signup failed!"
+      setSubmitError(
+        error.response?.data?.message || "Signup failed. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -248,7 +234,6 @@ export default function SignUp() {
   return (
     <div className="signup-page">
       <div className="signup-container">
-
         <div className="signup-header">
           <div className="signup-logo">
             <UserPlus size={22} />
@@ -256,28 +241,25 @@ export default function SignUp() {
 
           <h1>Create your account</h1>
 
-          <p>
-            Join Shoply and start shopping today
-          </p>
+          <p>Join Shoply and start shopping today</p>
         </div>
 
-        <form
-          className="signup-form"
-          onSubmit={handleSubmit}
-          noValidate
-        >
+        {submitError && (
+          <div className="signup-submit-error">{submitError}</div>
+        )}
 
+        <form className="signup-form" onSubmit={handleSubmit} noValidate>
           <div className="signup-name-grid">
-
             <div className="signup-form-group">
-              <label
-                className="signup-field-label"
-                htmlFor="firstName"
-              >
+              <label className="signup-field-label" htmlFor="firstName">
                 First name
               </label>
 
-              <div className="signup-input-wrapper">
+              <div
+                className={`signup-input-wrapper ${
+                  errors.firstName ? "signup-input-error" : ""
+                }`}
+              >
                 <User size={18} />
 
                 <input
@@ -290,17 +272,22 @@ export default function SignUp() {
                   autoComplete="given-name"
                 />
               </div>
+
+              {errors.firstName && (
+                <span className="signup-error">{errors.firstName}</span>
+              )}
             </div>
 
             <div className="signup-form-group">
-              <label
-                className="signup-field-label"
-                htmlFor="lastName"
-              >
+              <label className="signup-field-label" htmlFor="lastName">
                 Last name
               </label>
 
-              <div className="signup-input-wrapper">
+              <div
+                className={`signup-input-wrapper ${
+                  errors.lastName ? "signup-input-error" : ""
+                }`}
+              >
                 <User size={18} />
 
                 <input
@@ -313,19 +300,23 @@ export default function SignUp() {
                   autoComplete="family-name"
                 />
               </div>
-            </div>
 
+              {errors.lastName && (
+                <span className="signup-error">{errors.lastName}</span>
+              )}
+            </div>
           </div>
 
           <div className="signup-form-group">
-            <label
-              className="signup-field-label"
-              htmlFor="signup-email"
-            >
+            <label className="signup-field-label" htmlFor="signup-email">
               Email address
             </label>
 
-            <div className="signup-input-wrapper">
+            <div
+              className={`signup-input-wrapper ${
+                errors.email ? "signup-input-error" : ""
+              }`}
+            >
               <Mail size={18} />
 
               <input
@@ -338,42 +329,102 @@ export default function SignUp() {
                 autoComplete="email"
               />
             </div>
+
+            {errors.email && (
+              <span className="signup-error">{errors.email}</span>
+            )}
           </div>
 
           <div className="signup-form-group">
-            <label
-              className="signup-field-label"
-              htmlFor="signup-password"
-            >
+            <label className="signup-field-label" htmlFor="signup-password">
               Password
             </label>
 
-            <div className="signup-input-wrapper">
+            <div
+              className={`signup-input-wrapper ${
+                errors.password ? "signup-input-error" : ""
+              }`}
+            >
               <Lock size={18} />
 
               <input
                 id="signup-password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 value={user.password}
                 placeholder="Enter your password"
                 onChange={handleChange}
                 autoComplete="new-password"
               />
+
+              <button
+                type="button"
+                className="signup-password-toggle"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
+
+            {errors.password && (
+              <span className="signup-error">{errors.password}</span>
+            )}
+          </div>
+
+          <div className="signup-form-group">
+            <label
+              className="signup-field-label"
+              htmlFor="signup-confirm-password"
+            >
+              Confirm password
+            </label>
+
+            <div
+              className={`signup-input-wrapper ${
+                errors.confirmPassword ? "signup-input-error" : ""
+              }`}
+            >
+              <Lock size={18} />
+
+              <input
+                id="signup-confirm-password"
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={confirmPassword}
+                placeholder="Confirm your password"
+                onChange={handleConfirmPasswordChange}
+                autoComplete="new-password"
+              />
+
+              <button
+                type="button"
+                className="signup-password-toggle"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+
+            {errors.confirmPassword && (
+              <span className="signup-error">{errors.confirmPassword}</span>
+            )}
           </div>
 
           <div className="signup-name-grid">
-
             <div className="signup-form-group">
-              <label
-                className="signup-field-label"
-                htmlFor="dob"
-              >
+              <label className="signup-field-label" htmlFor="dob">
                 Date of birth
               </label>
 
-              <div className="signup-input-wrapper">
+              <div
+                className={`signup-input-wrapper ${
+                  errors.dob ? "signup-input-error" : ""
+                }`}
+              >
                 <Calendar size={18} />
 
                 <input
@@ -384,17 +435,20 @@ export default function SignUp() {
                   onChange={handleChange}
                 />
               </div>
+
+              {errors.dob && <span className="signup-error">{errors.dob}</span>}
             </div>
 
             <div className="signup-form-group">
-              <label
-                className="signup-field-label"
-                htmlFor="gender"
-              >
+              <label className="signup-field-label" htmlFor="gender">
                 Gender
               </label>
 
-              <div className="signup-input-wrapper">
+              <div
+                className={`signup-input-wrapper ${
+                  errors.gender ? "signup-input-error" : ""
+                }`}
+              >
                 <Users size={18} />
 
                 <select
@@ -403,53 +457,40 @@ export default function SignUp() {
                   value={user.gender}
                   onChange={handleChange}
                 >
-                  <option value="">
-                    Select gender
-                  </option>
+                  <option value="">Select gender</option>
 
-                  <option value="Male">
-                    Male
-                  </option>
+                  <option value="Male">Male</option>
 
-                  <option value="Female">
-                    Female
-                  </option>
+                  <option value="Female">Female</option>
 
-                  <option value="Other">
-                    Other
-                  </option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
-            </div>
 
+              {errors.gender && (
+                <span className="signup-error">{errors.gender}</span>
+              )}
+            </div>
           </div>
 
           <div className="signup-form-group">
-
-            <label
-              className="signup-field-label"
-              htmlFor="profileImage"
-            >
+            <label className="signup-field-label" htmlFor="profileImage">
               Profile photo
             </label>
 
             {imagePreview && (
               <div className="signup-image-preview">
-                <img
-                  src={imagePreview}
-                  alt="Selected profile"
-                />
+                <img src={imagePreview} alt="Selected profile" />
               </div>
             )}
 
             <label
               htmlFor="profileImage"
-              className="signup-file-upload"
+              className={`signup-file-upload ${
+                errors.profileImage ? "signup-file-upload-error" : ""
+              }`}
             >
-              <Camera
-                className="signup-file-icon"
-                size={18}
-              />
+              <Camera className="signup-file-icon" size={18} />
 
               <span className="signup-file-text">
                 {user.profileImage
@@ -457,9 +498,7 @@ export default function SignUp() {
                   : "Choose profile photo"}
               </span>
 
-              <span className="signup-file-button">
-                Browse
-              </span>
+              <span className="signup-file-button">Browse</span>
 
               <input
                 id="profileImage"
@@ -474,6 +513,9 @@ export default function SignUp() {
               JPG, PNG or JPEG · Maximum 5MB
             </span>
 
+            {errors.profileImage && (
+              <span className="signup-error">{errors.profileImage}</span>
+            )}
           </div>
 
           <button
@@ -483,22 +525,15 @@ export default function SignUp() {
           >
             <UserPlus size={18} />
 
-            {loading
-              ? "Creating account..."
-              : "Create account"}
+            {loading ? "Creating account..." : "Create account"}
           </button>
-
         </form>
 
         <div className="signup-footer">
           <p>
-            Already have an account?{" "}
-            <Link to="/login">
-              Login
-            </Link>
+            Already have an account? <Link to="/login">Login</Link>
           </p>
         </div>
-
       </div>
     </div>
   );

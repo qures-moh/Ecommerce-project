@@ -307,9 +307,75 @@ const addProduct = async (req, res) => {
   }
 };
 
+// const getProducts = async (req, res) => {
+//   try {
+//     const { category, subcategory, search, page = 1, limit = 10 } = req.query;
+
+//     const query = {
+//       isActive: true,
+//     };
+
+//     if (category) {
+//       query.category = category;
+//     }
+
+//     if (subcategory) {
+//       query.subcategory = subcategory;
+//     }
+
+//     if (search) {
+//       query.name = {
+//         $regex: search,
+//         $options: "i",
+//       };
+//     }
+
+//     const pageNumber = Math.max(Number(page) || 1, 1);
+
+//     const limitNumber = Math.max(Number(limit) || 10, 1);
+
+//     const skip = (pageNumber - 1) * limitNumber;
+
+//     const [products, totalProducts] = await Promise.all([
+//       Product.find(query)
+//         .populate("category", "name")
+//         .populate("subcategory", "name")
+//         .sort({ createdAt: -1 })
+//         .skip(skip)
+//         .limit(limitNumber)
+//         .lean(),
+
+//       Product.countDocuments(query),
+//     ]);
+
+//     return res.status(200).json({
+//       message: "Products fetched successfully",
+//       products,
+//       pagination: {
+//         currentPage: pageNumber,
+//         totalPages: Math.ceil(totalProducts / limitNumber),
+//         totalProducts,
+//         limit: limitNumber,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("GET PRODUCTS ERROR:", error);
+
+//     return res.status(500).json({
+//       message: "Failed to fetch products",
+//       error: error.message,
+//     });
+//   }
+// };
 const getProducts = async (req, res) => {
   try {
-    const { category, subcategory, search, page = 1, limit = 10 } = req.query;
+    const {
+      category,
+      subcategory,
+      search = "",
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     const query = {
       isActive: true,
@@ -323,9 +389,13 @@ const getProducts = async (req, res) => {
       query.subcategory = subcategory;
     }
 
-    if (search) {
+    if (search.trim()) {
+      const escapedSearch = search
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
       query.name = {
-        $regex: search,
+        $regex: escapedSearch,
         $options: "i",
       };
     }
@@ -348,9 +418,49 @@ const getProducts = async (req, res) => {
       Product.countDocuments(query),
     ]);
 
+    const formattedProducts = products.map((product) => {
+      const activeVariants = Array.isArray(product.variants)
+        ? product.variants.filter((variant) => variant.isActive !== false)
+        : [];
+
+      const firstVariant = activeVariants[0] || null;
+
+      let finalPrice = 0;
+
+      if (firstVariant) {
+        const price = Number(firstVariant.price || 0);
+
+        const discountValue = Number(firstVariant.discountValue || 0);
+
+        if (firstVariant.discountType === "percentage") {
+          finalPrice = price - (price * discountValue) / 100;
+        } else if (firstVariant.discountType === "flat") {
+          finalPrice = price - discountValue;
+        } else {
+          finalPrice = price;
+        }
+      }
+
+      return {
+        ...product,
+
+        displayPrice: Math.max(finalPrice, 0),
+
+        originalPrice: firstVariant ? Number(firstVariant.price || 0) : 0,
+
+        discountType: firstVariant?.discountType || null,
+
+        discountValue: Number(firstVariant?.discountValue || 0),
+
+        displayImages: firstVariant?.images || [],
+      };
+    });
+
     return res.status(200).json({
       message: "Products fetched successfully",
-      products,
+
+      products: formattedProducts,
+
       pagination: {
         currentPage: pageNumber,
         totalPages: Math.ceil(totalProducts / limitNumber),
