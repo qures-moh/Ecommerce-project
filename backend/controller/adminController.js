@@ -144,11 +144,64 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// const getAllOrders = async (req, res) => {
+//   try {
+//     const {
+//       page = 1,
+//       limit = 10,
+//       status,
+//       paymentStatus,
+//     } = req.query;
+
+//     const pageNumber = Math.max(Number(page), 1);
+//     const limitNumber = Math.max(Number(limit), 1);
+
+//     const filter = {};
+
+//     if (status) {
+//       filter.status = status;
+//     }
+
+//     if (paymentStatus) {
+//       filter.paymentStatus = paymentStatus;
+//     }
+
+//     const orders = await Order.find(filter)
+//       .populate(
+//         "user",
+//         "firstName lastName email"
+//       )
+//       .sort({ createdAt: -1 })
+//       .skip((pageNumber - 1) * limitNumber)
+//       .limit(limitNumber);
+
+//     const totalOrders =
+//       await Order.countDocuments(filter);
+
+//     return res.status(200).json({
+//       message: "Orders fetched successfully",
+//       orders,
+//       currentPage: pageNumber,
+//       totalPages: Math.ceil(
+//         totalOrders / limitNumber
+//       ),
+//       totalOrders,
+//     });
+//   } catch (error) {
+//     console.log("GET ALL ORDERS ERROR:", error);
+
+//     return res.status(500).json({
+//       message: "Failed to fetch orders",
+//       error: error.message,
+//     });
+//   }
+// };
 const getAllOrders = async (req, res) => {
   try {
     const {
       page = 1,
       limit = 10,
+      search = "",
       status,
       paymentStatus,
     } = req.query;
@@ -164,6 +217,58 @@ const getAllOrders = async (req, res) => {
 
     if (paymentStatus) {
       filter.paymentStatus = paymentStatus;
+    }
+
+    const searchValue = search.trim();
+
+    if (searchValue) {
+      const escapedSearch = searchValue
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/^#/, "");
+
+      const users = await User.find({
+        $or: [
+          {
+            firstName: {
+              $regex: escapedSearch,
+              $options: "i",
+            },
+          },
+          {
+            lastName: {
+              $regex: escapedSearch,
+              $options: "i",
+            },
+          },
+          {
+            email: {
+              $regex: escapedSearch,
+              $options: "i",
+            },
+          },
+        ],
+      }).select("_id");
+
+      const userIds = users.map((user) => user._id);
+
+      filter.$or = [
+        {
+          user: {
+            $in: userIds,
+          },
+        },
+        {
+          $expr: {
+            $regexMatch: {
+              input: {
+                $toString: "$_id",
+              },
+              regex: escapedSearch,
+              options: "i",
+            },
+          },
+        },
+      ];
     }
 
     const orders = await Order.find(filter)

@@ -13,6 +13,7 @@ import api from "../../utils/axios";
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -30,7 +31,7 @@ export default function AdminOrders() {
         params: {
           page,
           limit,
-          search,
+          search: searchQuery,
           status,
         },
       });
@@ -40,22 +41,27 @@ export default function AdminOrders() {
     } catch (error) {
       console.error("FETCH ORDERS ERROR:", error);
 
-      setError(
-        error.response?.data?.message ||
-          "Unable to load orders."
-      );
+      setError(error.response?.data?.message || "Unable to load orders.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(search);
+      setPage(1);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     fetchOrders();
-  }, [page, search, status]);
+  }, [page, searchQuery, status]);
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
-    setPage(1);
   };
 
   const handleStatusChange = (e) => {
@@ -85,9 +91,8 @@ export default function AdminOrders() {
     }
 
     return (
-      `${order.user.firstName || ""} ${
-        order.user.lastName || ""
-      }`.trim() || "Unknown Customer"
+      `${order.user.firstName || ""} ${order.user.lastName || ""}`.trim() ||
+      "Unknown Customer"
     );
   };
 
@@ -97,9 +102,8 @@ export default function AdminOrders() {
     }
 
     return order.items.reduce(
-      (total, item) =>
-        total + Number(item.quantity || 1),
-      0
+      (total, item) => total + Number(item.quantity || 1),
+      0,
     );
   };
 
@@ -121,9 +125,7 @@ export default function AdminOrders() {
           </div>
         </div>
 
-        <div className="orders-loading">
-          Loading orders...
-        </div>
+        <div className="orders-loading">Loading orders...</div>
       </div>
     );
   }
@@ -137,11 +139,7 @@ export default function AdminOrders() {
         </div>
       </div>
 
-      {error && (
-        <div className="orders-error">
-          {error}
-        </div>
-      )}
+      {error && <div className="orders-error">{error}</div>}
 
       <div className="orders-filters">
         <div className="order-search-box">
@@ -155,10 +153,7 @@ export default function AdminOrders() {
           />
         </div>
 
-        <select
-          value={status}
-          onChange={handleStatusChange}
-        >
+        <select value={status} onChange={handleStatusChange}>
           <option value="">All Status</option>
           <option value="pending">Pending</option>
           <option value="confirmed">Confirmed</option>
@@ -176,9 +171,7 @@ export default function AdminOrders() {
 
             <h3>No orders found</h3>
 
-            <p>
-              There are no orders matching your search.
-            </p>
+            <p>There are no orders matching your search.</p>
           </div>
         ) : (
           <table className="orders-table">
@@ -199,25 +192,18 @@ export default function AdminOrders() {
                 <tr key={order._id}>
                   <td>
                     <strong className="order-number">
-                      #
-                      {order._id
-                        ?.slice(-8)
-                        .toUpperCase()}
+                      #{order._id?.slice(-8).toUpperCase()}
                     </strong>
                   </td>
 
                   <td>
                     <div className="customer-cell">
                       <div className="customer-avatar">
-                        {getCustomerName(order)
-                          .charAt(0)
-                          .toUpperCase()}
+                        {getCustomerName(order).charAt(0).toUpperCase()}
                       </div>
 
                       <div>
-                        <strong>
-                          {getCustomerName(order)}
-                        </strong>
+                        <strong>{getCustomerName(order)}</strong>
 
                         <span>
                           {order.user?.email ||
@@ -230,9 +216,7 @@ export default function AdminOrders() {
 
                   <td>
                     <div>
-                      <strong>
-                        {getItemsCount(order)}
-                      </strong>
+                      <strong>{getItemsCount(order)}</strong>
 
                       <span
                         style={{
@@ -252,28 +236,20 @@ export default function AdminOrders() {
                   <td>
                     <strong className="order-total">
                       ₹
-                      {Math.round(
-                        Number(order.total || 0)
-                      ).toLocaleString("en-IN")}
+                      {Math.round(Number(order.total || 0)).toLocaleString(
+                        "en-IN",
+                      )}
                     </strong>
                   </td>
 
                   <td>
-                    <span
-                      className={getStatusClass(
-                        order.status
-                      )}
-                    >
-                      {order.status
-                        ?.charAt(0)
-                        .toUpperCase() +
+                    <span className={getStatusClass(order.status)}>
+                      {order.status?.charAt(0).toUpperCase() +
                         order.status?.slice(1)}
                     </span>
                   </td>
 
-                  <td>
-                    {formatDate(order.createdAt)}
-                  </td>
+                  <td>{formatDate(order.createdAt)}</td>
 
                   <td>
                     <div className="order-actions">
@@ -306,9 +282,7 @@ export default function AdminOrders() {
           <button
             type="button"
             disabled={page <= 1}
-            onClick={() =>
-              setPage((prev) => prev - 1)
-            }
+            onClick={() => setPage((prev) => prev - 1)}
           >
             <ChevronLeft size={17} />
             Previous
@@ -321,9 +295,7 @@ export default function AdminOrders() {
           <button
             type="button"
             disabled={page >= totalPages}
-            onClick={() =>
-              setPage((prev) => prev + 1)
-            }
+            onClick={() => setPage((prev) => prev + 1)}
           >
             Next
             <ChevronRight size={17} />

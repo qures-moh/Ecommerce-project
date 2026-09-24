@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   LogOut,
+  Search,
 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -24,6 +25,8 @@ import { removeToken } from "../../utils/authSlice";
 
 const AdminLayout = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [search, setSearch] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -37,6 +40,11 @@ const AdminLayout = () => {
       name: "Dashboard",
       path: "/admin/dashboard",
       icon: LayoutDashboard,
+    },
+    {
+      name: "Add Product",
+      path: "/admin/products/add",
+      icon: Plus,
     },
     {
       name: "Products",
@@ -75,6 +83,16 @@ const AdminLayout = () => {
     },
   ];
 
+  const filteredMenuItems = menuItems.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase().trim())
+  );
+
+  const handleMenuClick = (path) => {
+    navigate(path);
+    setSearch("");
+    setMobileMenu(false);
+  };
+
   const handleLogout = async () => {
     try {
       await api.post("/user/logout");
@@ -94,12 +112,12 @@ const AdminLayout = () => {
     navigate("/admin/login");
   };
 
-  const handleAddProduct = () => {
-    navigate("/admin/products/add");
-  };
-
   return (
-    <div className="admin-layout">
+    <div
+      className={`admin-layout ${
+        sidebarCollapsed ? "admin-sidebar-collapsed" : ""
+      }`}
+    >
       {mobileMenu && (
         <div
           className="admin-overlay"
@@ -131,7 +149,28 @@ const AdminLayout = () => {
           <p className="admin-menu-title">MENU</p>
 
           <nav>
-            {menuItems.map((item) => {
+            <NavLink
+              to="/admin/dashboard"
+              onClick={() => setMobileMenu(false)}
+              className={({ isActive }) =>
+                `admin-nav-link ${
+                  isActive ? "admin-nav-active" : ""
+                }`
+              }
+            >
+              <LayoutDashboard size={20} />
+              <span>Dashboard</span>
+            </NavLink>
+
+            <button
+              className="admin-nav-link admin-add-product-sidebar"
+              onClick={() => handleMenuClick("/admin/products/add")}
+            >
+              <Plus size={20} />
+              <span>Add Product</span>
+            </button>
+
+            {menuItems.slice(2).map((item) => {
               const Icon = item.icon;
 
               return (
@@ -158,11 +197,65 @@ const AdminLayout = () => {
         <header className="admin-topbar">
           <div className="admin-topbar-left">
             <button
+              className="admin-desktop-menu"
+              onClick={() =>
+                setSidebarCollapsed((prev) => !prev)
+              }
+            >
+              <Menu size={24} />
+            </button>
+
+            <button
               className="admin-mobile-menu"
               onClick={() => setMobileMenu(true)}
             >
               <Menu size={24} />
             </button>
+          </div>
+
+          <div className="admin-topbar-search">
+            <Search size={19} />
+
+            <input
+              type="text"
+              placeholder="Search menu..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+
+            {search && (
+              <button
+                className="admin-topbar-search-clear"
+                onClick={() => setSearch("")}
+              >
+                <X size={15} />
+              </button>
+            )}
+
+            {search && (
+              <div className="admin-search-suggestions">
+                {filteredMenuItems.length > 0 ? (
+                  filteredMenuItems.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                      <button
+                        key={item.path}
+                        className="admin-search-suggestion"
+                        onClick={() => handleMenuClick(item.path)}
+                      >
+                        <Icon size={18} />
+                        <span>{item.name}</span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="admin-no-search-result">
+                    No menu found
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="admin-topbar-right">
@@ -177,6 +270,7 @@ const AdminLayout = () => {
 
                   <div className="admin-profile-info">
                     <p>{user?.firstName || "Admin"}</p>
+
                     <span>
                       {user?.role
                         ? user.role.charAt(0).toUpperCase() +
@@ -185,14 +279,6 @@ const AdminLayout = () => {
                     </span>
                   </div>
                 </div>
-
-                <button
-                  className="admin-add-product-top"
-                  onClick={handleAddProduct}
-                >
-                  <Plus size={17} />
-                  Add Product
-                </button>
 
                 <button
                   className="admin-logout"
