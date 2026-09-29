@@ -1,4 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 
 import "./App.css";
 
@@ -22,13 +28,62 @@ import AdminSubcategories from "./components/pages/AdminSubcategories";
 import AdminAttributes from "./components/pages/AdminAttributes";
 import AdminAttributeValues from "./components/pages/AdminAttributeValues";
 
+function ProductEditRedirect() {
+  const { id } = useParams();
+
+  return (
+    <Navigate
+      to={`/admin/products/edit/${id}`}
+      replace
+    />
+  );
+}
+
+function OrderEditRedirect() {
+  const { id } = useParams();
+
+  return (
+    <Navigate
+      to={`/admin/orders/edit/${id}`}
+      replace
+    />
+  );
+}
+
+function OrderDetailsRedirect() {
+  const { id } = useParams();
+
+  return (
+    <Navigate
+      to={`/admin/orders/${id}`}
+      replace
+    />
+  );
+}
+
+function UserDetailsRedirect() {
+  const { id } = useParams();
+
+  return (
+    <Navigate
+      to={`/admin/users/${id}`}
+      replace
+    />
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/"
-          element={<Navigate to="/admin/dashboard" replace />}
+          element={
+            <Navigate
+              to="/admin/dashboard"
+              replace
+            />
+          }
         />
 
         <Route
@@ -36,10 +91,18 @@ function App() {
           element={<AdminLogin />}
         />
 
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={<AdminLayout />}
+        >
           <Route
             index
-            element={<Navigate to="/admin/dashboard" replace />}
+            element={
+              <Navigate
+                to="/admin/dashboard"
+                replace
+              />
+            }
           />
 
           <Route
@@ -115,72 +178,122 @@ function App() {
 
         <Route
           path="/dashboard"
-          element={<Navigate to="/admin/dashboard" replace />}
+          element={
+            <Navigate
+              to="/admin/dashboard"
+              replace
+            />
+          }
         />
 
         <Route
           path="/products"
-          element={<Navigate to="/admin/products" replace />}
+          element={
+            <Navigate
+              to="/admin/products"
+              replace
+            />
+          }
         />
 
         <Route
           path="/products/add"
-          element={<Navigate to="/admin/products/add" replace />}
+          element={
+            <Navigate
+              to="/admin/products/add"
+              replace
+            />
+          }
         />
 
         <Route
           path="/products/edit/:id"
-          element={<Navigate to="/admin/products/edit/:id" replace />}
+          element={<ProductEditRedirect />}
         />
 
         <Route
           path="/orders"
-          element={<Navigate to="/admin/orders" replace />}
+          element={
+            <Navigate
+              to="/admin/orders"
+              replace
+            />
+          }
         />
 
         <Route
           path="/orders/edit/:id"
-          element={<Navigate to="/admin/orders/edit/:id" replace />}
+          element={<OrderEditRedirect />}
         />
 
         <Route
           path="/orders/:id"
-          element={<Navigate to="/admin/orders/:id" replace />}
+          element={<OrderDetailsRedirect />}
         />
 
         <Route
           path="/users"
-          element={<Navigate to="/admin/users" replace />}
+          element={
+            <Navigate
+              to="/admin/users"
+              replace
+            />
+          }
         />
 
         <Route
           path="/users/:id"
-          element={<Navigate to="/admin/users/:id" replace />}
+          element={<UserDetailsRedirect />}
         />
 
         <Route
           path="/categories"
-          element={<Navigate to="/admin/categories" replace />}
+          element={
+            <Navigate
+              to="/admin/categories"
+              replace
+            />
+          }
         />
 
         <Route
           path="/categories/add"
-          element={<Navigate to="/admin/categories/add" replace />}
+          element={
+            <Navigate
+              to="/admin/categories/add"
+              replace
+            />
+          }
         />
 
         <Route
           path="/subcategories"
-          element={<Navigate to="/admin/subcategories" replace />}
+          element={
+            <Navigate
+              to="/admin/subcategories"
+              replace
+            />
+          }
         />
 
         <Route
           path="/attributes"
-          element={<Navigate to="/admin/attributes" replace />}
+          element={
+            <Navigate
+              to="/admin/attributes"
+              replace
+            />
+          }
         />
 
         <Route
           path="/attribute-values"
-          element={<Navigate to="/admin/attribute-values" replace />}
+          element={
+            <Navigate
+              to="/admin/attribute-values"
+              replace
+            />
+          }
         />
       </Routes>
 

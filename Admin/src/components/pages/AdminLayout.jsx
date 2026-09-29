@@ -27,6 +27,7 @@ const AdminLayout = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [search, setSearch] = useState("");
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -93,6 +94,14 @@ const AdminLayout = () => {
     setMobileMenu(false);
   };
 
+  const openLogoutConfirmation = () => {
+    setLogoutConfirm(true);
+  };
+
+  const closeLogoutConfirmation = () => {
+    setLogoutConfirm(false);
+  };
+
   const handleLogout = async () => {
     try {
       await api.post("/user/logout");
@@ -102,6 +111,13 @@ const AdminLayout = () => {
 
     dispatch(removeUser());
     dispatch(removeToken());
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setLogoutConfirm(false);
+    setMobileMenu(false);
+    setSearch("");
 
     toast.success("Logout successful");
 
@@ -282,7 +298,7 @@ const AdminLayout = () => {
 
                 <button
                   className="admin-logout"
-                  onClick={handleLogout}
+                  onClick={openLogoutConfirmation}
                 >
                   <LogOut size={17} />
                   Logout
@@ -323,6 +339,44 @@ const AdminLayout = () => {
           )}
         </main>
       </div>
+
+      {logoutConfirm && (
+        <div
+          className="admin-logout-overlay"
+          onClick={closeLogoutConfirmation}
+        >
+          <div
+            className="admin-logout-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="admin-logout-icon">
+              <LogOut size={23} />
+            </div>
+
+            <h2>Logout Confirmation</h2>
+
+            <p>
+              Are you sure you want to logout from the admin panel?
+            </p>
+
+            <div className="admin-logout-actions">
+              <button
+                className="admin-logout-cancel"
+                onClick={closeLogoutConfirmation}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="admin-logout-confirm"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -22,6 +22,9 @@ const AdminAttributeValues = () => {
   const [valueName, setValueName] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const fetchAttributes = async () => {
     try {
       setLoadingAttributes(true);
@@ -33,7 +36,9 @@ const AdminAttributeValues = () => {
       setAttributes(data);
 
       if (data.length > 0) {
-        setSelectedAttribute((prev) => prev || data[0]._id);
+        setSelectedAttribute(
+          (prev) => prev || data[0]._id
+        );
       } else {
         setSelectedAttribute("");
         setValues([]);
@@ -42,7 +47,8 @@ const AdminAttributeValues = () => {
       console.log(error);
 
       toast.error(
-        error.response?.data?.message || "Failed to fetch attributes"
+        error.response?.data?.message ||
+          "Failed to fetch attributes"
       );
     } finally {
       setLoadingAttributes(false);
@@ -57,12 +63,13 @@ const AdminAttributeValues = () => {
 
     try {
       const selected = attributes.find(
-        (attribute) => attribute._id === attributeId
+        (attribute) =>
+          attribute._id === attributeId
       );
 
-      const activeValues = (selected?.values || []).filter(
-        (item) => item.isActive
-      );
+      const activeValues = (
+        selected?.values || []
+      ).filter((item) => item.isActive);
 
       setValues(activeValues);
     } catch (error) {
@@ -76,14 +83,19 @@ const AdminAttributeValues = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedAttribute && attributes.length > 0) {
+    if (
+      selectedAttribute &&
+      attributes.length > 0
+    ) {
       fetchValues(selectedAttribute);
     }
   }, [selectedAttribute, attributes]);
 
   const openAddModal = () => {
     if (!selectedAttribute) {
-      toast.error("Please select an attribute first");
+      toast.error(
+        "Please select an attribute first"
+      );
       return;
     }
 
@@ -99,7 +111,9 @@ const AdminAttributeValues = () => {
   };
 
   const closeModal = () => {
-    if (saving) return;
+    if (saving) {
+      return;
+    }
 
     setShowModal(false);
     setEditingValue(null);
@@ -130,13 +144,20 @@ const AdminAttributeValues = () => {
           }
         );
 
-        toast.success("Attribute value updated successfully");
+        toast.success(
+          "Attribute value updated successfully"
+        );
       } else {
-        await api.post(`/attributes/${selectedAttribute}/values`, {
-          value: valueName.trim(),
-        });
+        await api.post(
+          `/attributes/${selectedAttribute}/values`,
+          {
+            value: valueName.trim(),
+          }
+        );
 
-        toast.success("Attribute value added successfully");
+        toast.success(
+          "Attribute value added successfully"
+        );
       }
 
       await fetchAttributes();
@@ -148,45 +169,69 @@ const AdminAttributeValues = () => {
       console.log(error);
 
       toast.error(
-        error.response?.data?.message || "Failed to save attribute value"
+        error.response?.data?.message ||
+          "Failed to save attribute value"
       );
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (valueId) => {
-    if (!selectedAttribute) return;
+  const openDeleteConfirmation = (value) => {
+    setDeleteConfirm(value);
+  };
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this value?"
-    );
+  const closeDeleteConfirmation = () => {
+    if (deleting) {
+      return;
+    }
 
-    if (!confirmed) return;
+    setDeleteConfirm(null);
+  };
+
+  const handleDelete = async () => {
+    if (
+      !selectedAttribute ||
+      !deleteConfirm?._id
+    ) {
+      return;
+    }
 
     try {
+      setDeleting(true);
+
       await api.delete(
-        `/attributes/${selectedAttribute}/values/${valueId}`
+        `/attributes/${selectedAttribute}/values/${deleteConfirm._id}`
       );
 
-      toast.success("Attribute value deleted successfully");
+      toast.success(
+        "Attribute value deleted successfully"
+      );
+
+      setDeleteConfirm(null);
 
       await fetchAttributes();
     } catch (error) {
       console.log(error);
 
       toast.error(
-        error.response?.data?.message || "Failed to delete attribute value"
+        error.response?.data?.message ||
+          "Failed to delete attribute value"
       );
+    } finally {
+      setDeleting(false);
     }
   };
 
   const filteredValues = values.filter((item) =>
-    item.value?.toLowerCase().includes(search.toLowerCase())
+    item.value
+      ?.toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   const currentAttribute = attributes.find(
-    (attribute) => attribute._id === selectedAttribute
+    (attribute) =>
+      attribute._id === selectedAttribute
   );
 
   return (
@@ -194,10 +239,15 @@ const AdminAttributeValues = () => {
       <div className="attribute-values-header">
         <div>
           <h1>Attribute Values</h1>
-          <p>Add and manage values for your product attributes</p>
+
+          <p>
+            Add and manage values for your product
+            attributes
+          </p>
         </div>
 
         <button
+          type="button"
           className="attribute-values-add-button"
           onClick={openAddModal}
         >
@@ -214,23 +264,38 @@ const AdminAttributeValues = () => {
 
           <div>
             <h3>Select Attribute</h3>
-            <p>Choose an attribute to manage its values</p>
+
+            <p>
+              Choose an attribute to manage its
+              values
+            </p>
           </div>
         </div>
 
         <div className="attribute-values-select-wrapper">
           <select
             value={selectedAttribute}
-            onChange={(e) => setSelectedAttribute(e.target.value)}
+            onChange={(e) =>
+              setSelectedAttribute(
+                e.target.value
+              )
+            }
             disabled={loadingAttributes}
           >
             {loadingAttributes ? (
-              <option value="">Loading attributes...</option>
+              <option value="">
+                Loading attributes...
+              </option>
             ) : attributes.length === 0 ? (
-              <option value="">No attributes available</option>
+              <option value="">
+                No attributes available
+              </option>
             ) : (
               attributes.map((attribute) => (
-                <option key={attribute._id} value={attribute._id}>
+                <option
+                  key={attribute._id}
+                  value={attribute._id}
+                >
                   {attribute.name}
                 </option>
               ))
@@ -244,8 +309,14 @@ const AdminAttributeValues = () => {
       <div className="attribute-values-toolbar">
         <div className="attribute-values-title">
           <div>
-            <h2>{currentAttribute?.name || "Values"}</h2>
-            <span>{filteredValues.length} values</span>
+            <h2>
+              {currentAttribute?.name ||
+                "Values"}
+            </h2>
+
+            <span>
+              {filteredValues.length} values
+            </span>
           </div>
         </div>
 
@@ -256,7 +327,9 @@ const AdminAttributeValues = () => {
             type="text"
             placeholder="Search values..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
           />
         </div>
       </div>
@@ -276,10 +349,15 @@ const AdminAttributeValues = () => {
 
             <p>
               Add values for{" "}
-              <strong>{currentAttribute?.name || "this attribute"}</strong>.
+              <strong>
+                {currentAttribute?.name ||
+                  "this attribute"}
+              </strong>
+              .
             </p>
 
             <button
+              type="button"
               onClick={openAddModal}
               className="attribute-values-empty-button"
             >
@@ -290,27 +368,41 @@ const AdminAttributeValues = () => {
         ) : (
           <div className="attribute-values-list">
             {filteredValues.map((item) => (
-              <div className="attribute-value-row" key={item._id}>
+              <div
+                className="attribute-value-row"
+                key={item._id}
+              >
                 <div className="attribute-value-left">
                   <div className="attribute-value-dot"></div>
 
                   <div>
                     <strong>{item.value}</strong>
-                    <span>{currentAttribute?.name}</span>
+
+                    <span>
+                      {currentAttribute?.name}
+                    </span>
                   </div>
                 </div>
 
                 <div className="attribute-value-actions">
                   <button
+                    type="button"
                     className="attribute-value-edit"
-                    onClick={() => openEditModal(item)}
+                    onClick={() =>
+                      openEditModal(item)
+                    }
+                    title="Edit"
                   >
                     <Edit size={17} />
                   </button>
 
                   <button
+                    type="button"
                     className="attribute-value-delete"
-                    onClick={() => handleDelete(item._id)}
+                    onClick={() =>
+                      openDeleteConfirmation(item)
+                    }
+                    title="Delete"
                   >
                     <Trash2 size={17} />
                   </button>
@@ -327,19 +419,23 @@ const AdminAttributeValues = () => {
             <div className="attribute-values-modal-header">
               <div>
                 <h2>
-                  {editingValue ? "Edit Value" : "Add Attribute Value"}
+                  {editingValue
+                    ? "Edit Value"
+                    : "Add Attribute Value"}
                 </h2>
 
                 <p>
                   Attribute:{" "}
-                  <strong>{currentAttribute?.name}</strong>
+                  <strong>
+                    {currentAttribute?.name}
+                  </strong>
                 </p>
               </div>
 
               <button
+                type="button"
                 className="attribute-values-modal-close"
                 onClick={closeModal}
-                type="button"
               >
                 <X size={21} />
               </button>
@@ -355,7 +451,9 @@ const AdminAttributeValues = () => {
                 <select
                   value={selectedAttribute}
                   onChange={(e) =>
-                    setSelectedAttribute(e.target.value)
+                    setSelectedAttribute(
+                      e.target.value
+                    )
                   }
                   disabled={!!editingValue}
                 >
@@ -379,12 +477,15 @@ const AdminAttributeValues = () => {
                   type="text"
                   placeholder="Enter value e.g. Black"
                   value={valueName}
-                  onChange={(e) => setValueName(e.target.value)}
+                  onChange={(e) =>
+                    setValueName(e.target.value)
+                  }
                   autoFocus
                 />
 
                 <small>
-                  Examples: Black, White, 128GB, 256GB, 8GB, 12GB
+                  Examples: Black, White, 128GB,
+                  256GB, 8GB, 12GB
                 </small>
               </div>
 
@@ -393,6 +494,7 @@ const AdminAttributeValues = () => {
                   type="button"
                   className="attribute-values-cancel"
                   onClick={closeModal}
+                  disabled={saving}
                 >
                   Cancel
                 </button>
@@ -405,11 +507,61 @@ const AdminAttributeValues = () => {
                   {saving
                     ? "Saving..."
                     : editingValue
-                      ? "Update Value"
-                      : "Add Value"}
+                    ? "Update Value"
+                    : "Add Value"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div
+          className="attribute-value-delete-overlay"
+          onClick={closeDeleteConfirmation}
+        >
+          <div
+            className="attribute-value-delete-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+            <div className="attribute-value-delete-icon">
+              <Trash2 size={24} />
+            </div>
+
+            <h2>Delete Attribute Value?</h2>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>
+                {deleteConfirm.value}
+              </strong>
+              ? This action cannot be undone.
+            </p>
+
+            <div className="attribute-value-delete-actions">
+              <button
+                type="button"
+                className="attribute-value-delete-cancel"
+                onClick={closeDeleteConfirmation}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="attribute-value-delete-confirm"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting
+                  ? "Deleting..."
+                  : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}

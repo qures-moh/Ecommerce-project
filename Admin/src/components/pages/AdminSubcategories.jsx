@@ -16,6 +16,7 @@ const AdminSubcategories = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [viewSubcategory, setViewSubcategory] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState("");
@@ -391,23 +392,37 @@ const AdminSubcategories = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to deactivate this subcategory?"
-    );
+  const openDeleteConfirmation = (subcategory) => {
+    setDeleteConfirm(subcategory);
+  };
 
-    if (!confirmDelete) {
+  const closeDeleteConfirmation = () => {
+    if (loading) {
+      return;
+    }
+
+    setDeleteConfirm(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm?._id) {
       return;
     }
 
     try {
-      await api.delete(`/subcategories/${id}`);
+      setLoading(true);
+
+      await api.delete(
+        `/subcategories/${deleteConfirm._id}`
+      );
 
       toast.success(
         "Subcategory deleted successfully"
       );
 
-      fetchSubcategories();
+      setDeleteConfirm(null);
+
+      await fetchSubcategories();
     } catch (error) {
       console.log(error);
 
@@ -415,6 +430,8 @@ const AdminSubcategories = () => {
         error.response?.data?.message ||
           "Failed to delete subcategory"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -551,8 +568,8 @@ const AdminSubcategories = () => {
                           type="button"
                           className="subcategory-delete"
                           onClick={() =>
-                            handleDelete(
-                              subcategory._id
+                            openDeleteConfirmation(
+                              subcategory
                             )
                           }
                           title="Delete"
@@ -709,13 +726,9 @@ const AdminSubcategories = () => {
 
                 <div
                   className={`subcategory-upload-box ${
-                    imagePreview
-                      ? "has-image"
-                      : ""
+                    imagePreview ? "has-image" : ""
                   } ${
-                    errors.image
-                      ? "upload-error"
-                      : ""
+                    errors.image ? "upload-error" : ""
                   }`}
                   onClick={() => {
                     document
@@ -892,6 +905,50 @@ const AdminSubcategories = () => {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div
+          className="subcategory-delete-overlay"
+          onClick={closeDeleteConfirmation}
+        >
+          <div
+            className="subcategory-delete-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="subcategory-delete-icon">
+              <Trash2 size={24} />
+            </div>
+
+            <h2>Delete Subcategory?</h2>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>{deleteConfirm.name}</strong>?
+              This action cannot be undone.
+            </p>
+
+            <div className="subcategory-delete-actions">
+              <button
+                type="button"
+                className="subcategory-delete-cancel"
+                onClick={closeDeleteConfirmation}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="subcategory-delete-confirm"
+                onClick={handleDelete}
+                disabled={loading}
+              >
+                {loading ? "Deleting..." : "Delete"}
+              </button>
             </div>
           </div>
         </div>

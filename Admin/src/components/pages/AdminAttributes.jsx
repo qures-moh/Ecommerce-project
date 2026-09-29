@@ -13,7 +13,6 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import api from "../../utils/axios";
 
-
 const AdminAttributes = () => {
   const navigate = useNavigate();
 
@@ -23,10 +22,14 @@ const AdminAttributes = () => {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [selectedAttribute, setSelectedAttribute] = useState(null);
+  const [selectedAttribute, setSelectedAttribute] =
+    useState(null);
+
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
 
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchAttributes = async () => {
     try {
@@ -40,7 +43,10 @@ const AdminAttributes = () => {
 
       setAttributes(response.data.attributes || []);
     } catch (error) {
-      console.log("FETCH ATTRIBUTES ERROR:", error);
+      console.log(
+        "FETCH ATTRIBUTES ERROR:",
+        error
+      );
 
       toast.error(
         error.response?.data?.message ||
@@ -74,7 +80,9 @@ const AdminAttributes = () => {
   };
 
   const closeModal = () => {
-    if (saving) return;
+    if (saving) {
+      return;
+    }
 
     setModalOpen(false);
     setEditMode(false);
@@ -101,19 +109,26 @@ const AdminAttributes = () => {
           }
         );
 
-        toast.success("Attribute updated successfully");
+        toast.success(
+          "Attribute updated successfully"
+        );
       } else {
         await api.post("/attributes", {
           name: name.trim(),
         });
 
-        toast.success("Attribute created successfully");
+        toast.success(
+          "Attribute created successfully"
+        );
       }
 
       closeModal();
       fetchAttributes();
     } catch (error) {
-      console.log("SAVE ATTRIBUTE ERROR:", error);
+      console.log(
+        "SAVE ATTRIBUTE ERROR:",
+        error
+      );
 
       toast.error(
         error.response?.data?.message ||
@@ -124,28 +139,49 @@ const AdminAttributes = () => {
     }
   };
 
-  const handleDelete = async (attribute) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${attribute.name}"?`
-    );
+  const openDeleteConfirmation = (attribute) => {
+    setDeleteConfirm(attribute);
+  };
 
-    if (!confirmed) return;
+  const closeDeleteConfirmation = () => {
+    if (deleting) {
+      return;
+    }
+
+    setDeleteConfirm(null);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm?._id) {
+      return;
+    }
 
     try {
+      setDeleting(true);
+
       await api.delete(
-        `/attributes/${attribute._id}`
+        `/attributes/${deleteConfirm._id}`
       );
 
-      toast.success("Attribute deleted successfully");
+      toast.success(
+        "Attribute deleted successfully"
+      );
+
+      setDeleteConfirm(null);
 
       fetchAttributes();
     } catch (error) {
-      console.log("DELETE ATTRIBUTE ERROR:", error);
+      console.log(
+        "DELETE ATTRIBUTE ERROR:",
+        error
+      );
 
       toast.error(
         error.response?.data?.message ||
           "Failed to delete attribute"
       );
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -172,6 +208,7 @@ const AdminAttributes = () => {
         </div>
 
         <button
+          type="button"
           className="attributes-add-button"
           onClick={openAddModal}
         >
@@ -195,6 +232,7 @@ const AdminAttributes = () => {
 
           {search && (
             <button
+              type="button"
               className="attributes-search-clear"
               onClick={() => setSearch("")}
             >
@@ -219,6 +257,7 @@ const AdminAttributes = () => {
         {loading ? (
           <div className="attributes-loading">
             <div className="attributes-spinner"></div>
+
             <p>Loading attributes...</p>
           </div>
         ) : attributes.length === 0 ? (
@@ -235,6 +274,7 @@ const AdminAttributes = () => {
             </p>
 
             <button
+              type="button"
               className="attributes-empty-button"
               onClick={openAddModal}
             >
@@ -247,7 +287,8 @@ const AdminAttributes = () => {
             {attributes.map((attribute) => {
               const activeValues =
                 attribute.values?.filter(
-                  (item) => item.isActive !== false
+                  (item) =>
+                    item.isActive !== false
                 ) || [];
 
               return (
@@ -284,11 +325,14 @@ const AdminAttributes = () => {
 
                         {activeValues.length > 5 && (
                           <span className="attribute-more">
-                            +{activeValues.length - 5}
+                            +
+                            {activeValues.length -
+                              5}
                           </span>
                         )}
 
-                        {activeValues.length === 0 && (
+                        {activeValues.length ===
+                          0 && (
                           <span className="attribute-no-values">
                             No values added
                           </span>
@@ -299,6 +343,7 @@ const AdminAttributes = () => {
 
                   <div className="attribute-card-actions">
                     <button
+                      type="button"
                       className="attribute-values-button"
                       onClick={() =>
                         openValues(attribute)
@@ -309,6 +354,7 @@ const AdminAttributes = () => {
                     </button>
 
                     <button
+                      type="button"
                       className="attribute-edit-button"
                       onClick={() =>
                         openEditModal(attribute)
@@ -319,9 +365,12 @@ const AdminAttributes = () => {
                     </button>
 
                     <button
+                      type="button"
                       className="attribute-delete-button"
                       onClick={() =>
-                        handleDelete(attribute)
+                        openDeleteConfirmation(
+                          attribute
+                        )
                       }
                       title="Delete Attribute"
                     >
@@ -362,6 +411,7 @@ const AdminAttributes = () => {
               </div>
 
               <button
+                type="button"
                 className="attribute-modal-close"
                 onClick={closeModal}
               >
@@ -418,6 +468,56 @@ const AdminAttributes = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirm && (
+        <div
+          className="attribute-delete-overlay"
+          onClick={closeDeleteConfirmation}
+        >
+          <div
+            className="attribute-delete-modal"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+          >
+            <div className="attribute-delete-icon">
+              <Trash2 size={24} />
+            </div>
+
+            <h2>Delete Attribute?</h2>
+
+            <p>
+              Are you sure you want to delete{" "}
+              <strong>
+                {deleteConfirm.name}
+              </strong>
+              ? This action cannot be undone.
+            </p>
+
+            <div className="attribute-delete-actions">
+              <button
+                type="button"
+                className="attribute-delete-cancel"
+                onClick={closeDeleteConfirmation}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="attribute-delete-confirm"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting
+                  ? "Deleting..."
+                  : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}
