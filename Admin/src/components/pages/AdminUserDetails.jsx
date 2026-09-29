@@ -36,7 +36,10 @@ export default function AdminUserDetails() {
     } catch (error) {
       console.error("FETCH USER ERROR:", error);
 
-      setError(error.response?.data?.message || "Unable to load user details.");
+      setError(
+        error.response?.data?.message ||
+          "Unable to load user details."
+      );
     } finally {
       setLoading(false);
     }
@@ -46,8 +49,29 @@ export default function AdminUserDetails() {
     if (!user) return "Unknown User";
 
     return (
-      `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unknown User"
+      `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+      "Unknown User"
     );
+  };
+
+  const getImageUrl = (image) => {
+    if (!image) return "";
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    const backendUrl =
+      import.meta.env.VITE_API_URL ||
+      "http://localhost:3000";
+
+    return `${backendUrl.replace(/\/$/, "")}/${image.replace(
+      /^\//,
+      ""
+    )}`;
   };
 
   const formatDate = (date) => {
@@ -63,26 +87,36 @@ export default function AdminUserDetails() {
   const formatStatus = (status) => {
     if (!status) return "Unknown";
 
-    return status.charAt(0).toUpperCase() + status.slice(1);
+    return (
+      status.charAt(0).toUpperCase() +
+      status.slice(1)
+    );
   };
 
   const getOrderTotal = () => {
-    return orders.reduce((total, order) => total + Number(order.total || 0), 0);
+    return orders.reduce(
+      (total, order) =>
+        total + Number(order.total || 0),
+      0
+    );
   };
 
   const getItemsCount = (order) => {
     if (!order.items) return 0;
 
     return order.items.reduce(
-      (total, item) => total + Number(item.quantity || 1),
-      0,
+      (total, item) =>
+        total + Number(item.quantity || 1),
+      0
     );
   };
 
   if (loading) {
     return (
       <div className="admin-user-details-page">
-        <div className="user-details-loading">Loading user details...</div>
+        <div className="user-details-loading">
+          Loading user details...
+        </div>
       </div>
     );
   }
@@ -99,7 +133,9 @@ export default function AdminUserDetails() {
           Back to Users
         </button>
 
-        <div className="user-details-error">{error || "User not found."}</div>
+        <div className="user-details-error">
+          {error || "User not found."}
+        </div>
       </div>
     );
   }
@@ -124,7 +160,9 @@ export default function AdminUserDetails() {
 
           <span
             className={`user-details-status ${
-              user.isActive ? "user-details-active" : "user-details-inactive"
+              user.isActive
+                ? "user-details-active"
+                : "user-details-inactive"
             }`}
           >
             {user.isActive ? "Active" : "Inactive"}
@@ -132,7 +170,11 @@ export default function AdminUserDetails() {
         </div>
       </div>
 
-      {error && <div className="user-details-error">{error}</div>}
+      {error && (
+        <div className="user-details-error">
+          {error}
+        </div>
+      )}
 
       <div className="user-details-grid">
         <div className="user-main-column">
@@ -141,11 +183,17 @@ export default function AdminUserDetails() {
               <div className="user-profile-avatar">
                 {user.profileImage ? (
                   <img
-                    src={`http://localhost:3000/${user.profileImage}`}
+                    src={getImageUrl(user.profileImage)}
                     alt={getUserName()}
+                    onError={(e) => {
+                      e.currentTarget.style.display =
+                        "none";
+                    }}
                   />
                 ) : (
-                  getUserName().charAt(0).toUpperCase()
+                  getUserName()
+                    .charAt(0)
+                    .toUpperCase()
                 )}
               </div>
 
@@ -174,7 +222,9 @@ export default function AdminUserDetails() {
 
                 <div>
                   <span>Gender</span>
-                  <strong>{user.gender || "—"}</strong>
+                  <strong>
+                    {user.gender || "—"}
+                  </strong>
                 </div>
               </div>
 
@@ -185,7 +235,9 @@ export default function AdminUserDetails() {
 
                 <div>
                   <span>Date of Birth</span>
-                  <strong>{formatDate(user.dob)}</strong>
+                  <strong>
+                    {formatDate(user.dob)}
+                  </strong>
                 </div>
               </div>
 
@@ -196,7 +248,9 @@ export default function AdminUserDetails() {
 
                 <div>
                   <span>Joined</span>
-                  <strong>{formatDate(user.createdAt)}</strong>
+                  <strong>
+                    {formatDate(user.createdAt)}
+                  </strong>
                 </div>
               </div>
             </div>
@@ -210,15 +264,23 @@ export default function AdminUserDetails() {
               </div>
 
               <span>
-                {orders.length} {orders.length === 1 ? "Order" : "Orders"}
+                {orders.length}{" "}
+                {orders.length === 1
+                  ? "Order"
+                  : "Orders"}
               </span>
             </div>
 
             {orders.length === 0 ? (
               <div className="user-orders-empty">
                 <Package size={35} />
+
                 <h3>No orders yet</h3>
-                <p>This customer has not placed any orders.</p>
+
+                <p>
+                  This customer has not placed any
+                  orders.
+                </p>
               </div>
             ) : (
               <div className="user-orders-table-wrapper">
@@ -238,18 +300,27 @@ export default function AdminUserDetails() {
                       <tr key={order._id}>
                         <td>
                           <strong className="user-order-number">
-                            #{order._id?.slice(-8).toUpperCase()}
+                            #
+                            {order._id
+                              ?.slice(-8)
+                              .toUpperCase()}
                           </strong>
                         </td>
 
-                        <td>{getItemsCount(order)}</td>
+                        <td>
+                          {getItemsCount(order)}
+                        </td>
 
                         <td>
                           <strong className="user-order-total">
                             ₹
                             {Math.round(
-                              Number(order.total || 0),
-                            ).toLocaleString("en-IN")}
+                              Number(
+                                order.total || 0
+                              )
+                            ).toLocaleString(
+                              "en-IN"
+                            )}
                           </strong>
                         </td>
 
@@ -257,11 +328,17 @@ export default function AdminUserDetails() {
                           <span
                             className={`user-order-status status-${order.status}`}
                           >
-                            {formatStatus(order.status)}
+                            {formatStatus(
+                              order.status
+                            )}
                           </span>
                         </td>
 
-                        <td>{formatDate(order.createdAt)}</td>
+                        <td>
+                          {formatDate(
+                            order.createdAt
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -290,8 +367,12 @@ export default function AdminUserDetails() {
 
             <div>
               <span>Total Spent</span>
+
               <strong>
-                ₹{Math.round(getOrderTotal()).toLocaleString("en-IN")}
+                ₹
+                {Math.round(
+                  getOrderTotal()
+                ).toLocaleString("en-IN")}
               </strong>
             </div>
           </div>
@@ -305,23 +386,34 @@ export default function AdminUserDetails() {
             <div className="account-details">
               <div>
                 <span>Role</span>
-                <strong>{user.role || "customer"}</strong>
+
+                <strong>
+                  {user.role || "customer"}
+                </strong>
               </div>
 
               <div>
                 <span>Status</span>
+
                 <strong
                   className={
-                    user.isActive ? "account-active" : "account-inactive"
+                    user.isActive
+                      ? "account-active"
+                      : "account-inactive"
                   }
                 >
-                  {user.isActive ? "Active" : "Inactive"}
+                  {user.isActive
+                    ? "Active"
+                    : "Inactive"}
                 </strong>
               </div>
 
               <div>
                 <span>Member Since</span>
-                <strong>{formatDate(user.createdAt)}</strong>
+
+                <strong>
+                  {formatDate(user.createdAt)}
+                </strong>
               </div>
             </div>
           </div>
