@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 
 function Slider() {
@@ -7,19 +6,19 @@ function Slider() {
   const slides = [
     {
       image:
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=80",
+        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1800&q=85",
       title: "Discover Something New",
       text: "Explore products made for your everyday style.",
     },
     {
       image:
-        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1400&q=80",
+        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1800&q=85",
       title: "Fresh Styles",
       text: "Upgrade your wardrobe with our latest collection.",
     },
     {
       image:
-        "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1400&q=80",
+        "https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1800&q=85",
       title: "Shop Your Way",
       text: "Find your favorites and make them yours.",
     },
@@ -38,58 +37,56 @@ function Slider() {
   };
 
   return (
-    <section className="slider">
-
+    <section className="fashion-slider">
       <div
-        className="slider-image"
+        className="fashion-slider-image"
         style={{
           backgroundImage: `url(${slides[currentSlide].image})`,
         }}
       >
-        <div className="slider-overlay">
-
-          <div className="slider-content">
+        <div className="fashion-slider-overlay">
+          <div className="fashion-slider-content">
             <h1>{slides[currentSlide].title}</h1>
 
             <p>{slides[currentSlide].text}</p>
 
-            <button>
+            <button className="fashion-slider-button">
               Shop Now
             </button>
           </div>
-
         </div>
 
         <button
-          className="slider-arrow slider-prev"
+          className="fashion-slider-arrow fashion-slider-arrow-left"
           onClick={previousSlide}
+          aria-label="Previous slide"
         >
           ‹
         </button>
 
         <button
-          className="slider-arrow slider-next"
+          className="fashion-slider-arrow fashion-slider-arrow-right"
           onClick={nextSlide}
+          aria-label="Next slide"
         >
           ›
         </button>
 
-        <div className="slider-dots">
+        <div className="fashion-slider-dots">
           {slides.map((_, index) => (
             <button
               key={index}
               className={
                 currentSlide === index
-                  ? "slider-dot active"
-                  : "slider-dot"
+                  ? "fashion-slider-dot fashion-slider-dot-current"
+                  : "fashion-slider-dot"
               }
               onClick={() => setCurrentSlide(index)}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
-
       </div>
-
     </section>
   );
 }

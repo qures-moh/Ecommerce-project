@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import {  ArrowLeft, Heart, Minus, Plus, ShoppingCart } from "lucide-react";
+import {
+  ArrowLeft,
+  Heart,
+  Minus,
+  Plus,
+  ShoppingCart,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import api from "../utils/axios";
@@ -17,7 +23,8 @@ const getImageUrl = (image) => {
   }
 
   const baseUrl =
-    api.defaults.baseURL?.replace(/\/api\/?$/, "") || "http://localhost:3000";
+    api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
+    "http://localhost:3000";
 
   const cleanImage = image.replace(/\\/g, "/").replace(/^\/+/, "");
 
@@ -29,7 +36,9 @@ const getVariants = (product) => {
     return [];
   }
 
-  return product.variants.filter((variant) => variant?.isActive !== false);
+  return product.variants.filter(
+    (variant) => variant?.isActive !== false
+  );
 };
 
 const getAttributes = (variant) => {
@@ -51,7 +60,10 @@ const getAttributes = (variant) => {
   return {};
 };
 
-const getAttributeOptions = (variants, selectedAttributes = {}) => {
+const getAttributeOptions = (
+  variants,
+  selectedAttributes = {}
+) => {
   const groups = {};
 
   variants
@@ -60,18 +72,19 @@ const getAttributeOptions = (variants, selectedAttributes = {}) => {
       const attributes = getAttributes(variant);
 
       Object.entries(attributes).forEach(([key, value]) => {
-        const matchesOtherAttributes = Object.entries(selectedAttributes).every(
-          ([selectedKey, selectedValue]) => {
-            if (selectedKey === key) {
-              return true;
-            }
+        const matchesOtherAttributes = Object.entries(
+          selectedAttributes
+        ).every(([selectedKey, selectedValue]) => {
+          if (selectedKey === key) {
+            return true;
+          }
 
-            return (
-              attributes[selectedKey] !== undefined &&
-              String(attributes[selectedKey]) === String(selectedValue)
-            );
-          },
-        );
+          return (
+            attributes[selectedKey] !== undefined &&
+            String(attributes[selectedKey]) ===
+              String(selectedValue)
+          );
+        });
 
         if (!matchesOtherAttributes) {
           return;
@@ -97,7 +110,10 @@ const getVariantFinalPrice = (variant) => {
   const discount = Number(variant?.discountValue) || 0;
 
   if (variant?.discountType === "percentage") {
-    return Math.max(0, price - (price * discount) / 100);
+    return Math.max(
+      0,
+      price - (price * discount) / 100
+    );
   }
 
   if (variant?.discountType === "flat") {
@@ -128,14 +144,16 @@ const getVariantImages = (variant) => {
   }
 
   return variant.images.filter(
-    (image) => typeof image === "string" && image.length > 0,
+    (image) => typeof image === "string" && image.length > 0
   );
 };
 
-const findMatchingVariant = (variants, selectedAttributes) => {
+const findMatchingVariant = (
+  variants,
+  selectedAttributes
+) => {
   return variants.find((variant) => {
     const attributes = getAttributes(variant);
-
     const keys = Object.keys(attributes);
 
     if (!keys.length) {
@@ -145,7 +163,8 @@ const findMatchingVariant = (variants, selectedAttributes) => {
     return keys.every(
       (key) =>
         selectedAttributes[key] !== undefined &&
-        String(attributes[key]) === String(selectedAttributes[key]),
+        String(attributes[key]) ===
+          String(selectedAttributes[key])
     );
   });
 };
@@ -156,21 +175,24 @@ export default function ProductDetails() {
   const dispatch = useDispatch();
 
   const cart = useSelector((state) => state.cart || []);
-
   const wishlist = useSelector((state) => state.wishlist || []);
 
+  const isAuthenticated = useSelector((state) => {
+    return Boolean(
+      state.auth?.isAuthenticated ||
+      state.auth?.user ||
+      state.user?.isAuthenticated ||
+      state.user?.user
+    );
+  });
+
   const [product, setProduct] = useState(null);
-
   const [selectedVariant, setSelectedVariant] = useState(null);
-
-  const [selectedAttributes, setSelectedAttributes] = useState({});
-
+  const [selectedAttributes, setSelectedAttributes] =
+    useState({});
   const [selectedImage, setSelectedImage] = useState("");
-
   const [quantity, setQuantity] = useState(1);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -193,8 +215,9 @@ export default function ProductDetails() {
 
         if (productVariants.length > 0) {
           const firstVariant =
-            productVariants.find((variant) => Number(variant.stock) > 0) ||
-            productVariants[0];
+            productVariants.find(
+              (variant) => Number(variant.stock) > 0
+            ) || productVariants[0];
 
           setSelectedVariant(firstVariant);
 
@@ -202,7 +225,8 @@ export default function ProductDetails() {
 
           setSelectedAttributes(attributes);
 
-          const variantImages = getVariantImages(firstVariant);
+          const variantImages =
+            getVariantImages(firstVariant);
 
           setSelectedImage(variantImages[0] || "");
         } else {
@@ -213,7 +237,10 @@ export default function ProductDetails() {
       } catch (error) {
         console.error("FETCH PRODUCT ERROR:", error);
 
-        setError(error.response?.data?.message || "Failed to load product");
+        setError(
+          error.response?.data?.message ||
+            "Failed to load product"
+        );
       } finally {
         setLoading(false);
       }
@@ -224,7 +251,10 @@ export default function ProductDetails() {
 
   const variants = getVariants(product);
 
-  const attributeOptions = getAttributeOptions(variants, selectedAttributes);
+  const attributeOptions = getAttributeOptions(
+    variants,
+    selectedAttributes
+  );
 
   const images = getVariantImages(selectedVariant);
 
@@ -259,11 +289,13 @@ export default function ProductDetails() {
   const cartItem = cart.find((item) => {
     const itemProductId = item.product || item._id;
 
-    const itemVariantId = item.variantId || item.variant?._id;
+    const itemVariantId =
+      item.variantId || item.variant?._id;
 
     return (
       String(itemProductId) === String(product?._id) &&
-      String(itemVariantId) === String(selectedVariant?._id)
+      String(itemVariantId) ===
+        String(selectedVariant?._id)
     );
   });
 
@@ -271,24 +303,46 @@ export default function ProductDetails() {
 
   const isWishlisted =
     product &&
-    wishlist.some((item) => String(item._id) === String(product._id));
+    wishlist.some(
+      (item) =>
+        String(item._id) === String(product._id)
+    );
 
-  const handleAttributeChange = (attributeName, value) => {
+  const handleLoginRequired = () => {
+    toast.warning(
+      "You are not logged in. Please login first.",
+      {
+        autoClose: 1500,
+      }
+    );
+
+    setTimeout(() => {
+      navigate("/login");
+    }, 1200);
+  };
+
+  const handleAttributeChange = (
+    attributeName,
+    value
+  ) => {
     const newAttributes = {
       ...selectedAttributes,
       [attributeName]: value,
     };
 
     const matchingVariant = findMatchingVariant(
-      variants.filter((variant) => Number(variant.stock) > 0),
-      newAttributes,
+      variants.filter(
+        (variant) => Number(variant.stock) > 0
+      ),
+      newAttributes
     );
 
     if (matchingVariant) {
       setSelectedAttributes(newAttributes);
       setSelectedVariant(matchingVariant);
 
-      const variantImages = getVariantImages(matchingVariant);
+      const variantImages =
+        getVariantImages(matchingVariant);
 
       setSelectedImage(variantImages[0] || "");
       setQuantity(1);
@@ -324,7 +378,8 @@ export default function ProductDetails() {
       return null;
     }
 
-    const variantImages = getVariantImages(selectedVariant);
+    const variantImages =
+      getVariantImages(selectedVariant);
 
     const attributes = getAttributes(selectedVariant);
 
@@ -342,7 +397,8 @@ export default function ProductDetails() {
         attributes,
         price: Number(selectedVariant.price) || 0,
         discountType: selectedVariant.discountType,
-        discountValue: Number(selectedVariant.discountValue) || 0,
+        discountValue:
+          Number(selectedVariant.discountValue) || 0,
         stock: Number(selectedVariant.stock) || 0,
         images: variantImages,
       },
@@ -355,7 +411,8 @@ export default function ProductDetails() {
 
       discountType: selectedVariant.discountType,
 
-      discountValue: Number(selectedVariant.discountValue) || 0,
+      discountValue:
+        Number(selectedVariant.discountValue) || 0,
 
       stock,
 
@@ -382,6 +439,11 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      handleLoginRequired();
+      return;
+    }
+
     if (!selectedVariant) {
       toast.error("Please select a valid variant");
       return;
@@ -392,7 +454,28 @@ export default function ProductDetails() {
       return;
     }
 
-    if (cartQuantity + quantity > stock) {
+    if (cartItem) {
+      toast.info(
+        <div className="existing-cart-toast">
+          <span>Product is already in your cart</span>
+
+          <button
+            type="button"
+            className="existing-cart-link"
+            onClick={() => {
+              toast.dismiss();
+              navigate("/cart");
+            }}
+          >
+            Go to Cart
+          </button>
+        </div>
+      );
+
+      return;
+    }
+
+    if (quantity > stock) {
       toast.error(`Only ${stock} available`);
       return;
     }
@@ -407,6 +490,11 @@ export default function ProductDetails() {
   };
 
   const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      handleLoginRequired();
+      return;
+    }
+
     if (!selectedVariant) {
       toast.error("Please select a valid variant");
       return;
@@ -432,13 +520,22 @@ export default function ProductDetails() {
   };
 
   const handleWishlist = () => {
+    if (!isAuthenticated) {
+      handleLoginRequired();
+      return;
+    }
+
     if (!product) {
       return;
     }
 
     dispatch(toggleWishlist(product));
 
-    toast.success(isWishlisted ? "Removed from wishlist" : "Added to wishlist");
+    toast.success(
+      isWishlisted
+        ? "Removed from wishlist"
+        : "Added to wishlist"
+    );
   };
 
   if (loading) {
@@ -447,7 +544,10 @@ export default function ProductDetails() {
         <div className="product-details-container">
           <div className="product-details-loading">
             <div className="product-details-loader"></div>
-            <p>Loading product...</p>
+
+            <p className="product-loading-text">
+              Loading product...
+            </p>
           </div>
         </div>
       </section>
@@ -459,14 +559,13 @@ export default function ProductDetails() {
       <section className="product-details-page">
         <div className="product-details-container">
           <div className="product-details-error">
-            <h2>Product not found</h2>
+            <h2 className="product-error-title product-secondary-heading">
+              Product not found
+            </h2>
 
-            <p>{error || "Unable to load product"}</p>
-
-            {/* <Link to="/categories"     className="product-page-back-btn">
-              <ArrowLeft size={18} />
-              Back
-            </Link> */}
+            <p className="product-error-text">
+              {error || "Unable to load product"}
+            </p>
           </div>
         </div>
       </section>
@@ -481,13 +580,19 @@ export default function ProductDetails() {
 
           <span>/</span>
 
-          <Link to={`/categories/${product.category?._id || product.category}`}>
+          <Link
+            to={`/categories/${
+              product.category?._id || product.category
+            }`}
+          >
             {categoryName || "Category"}
           </Link>
 
           <span>/</span>
 
-          <span>{subcategoryName || "Subcategory"}</span>
+          <span>
+            {subcategoryName || "Subcategory"}
+          </span>
 
           <span>/</span>
 
@@ -499,13 +604,19 @@ export default function ProductDetails() {
           className="product-page-back-btn"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft size={18}  />
+          <ArrowLeft size={18} />
           Back
         </button>
 
         <div className="product-details-layout">
           <div className="product-image-section">
-            <div className="product-image-gallery">
+            <div
+              className={`product-image-gallery ${
+                images.length === 1
+                  ? "product-single-image-gallery"
+                  : ""
+              }`}
+            >
               {images.length > 1 && (
                 <div className="product-thumbnail-list">
                   {images.map((image, index) => (
@@ -517,11 +628,15 @@ export default function ProductDetails() {
                           ? "product-thumbnail-active"
                           : ""
                       }`}
-                      onClick={() => handleImageChange(image)}
+                      onClick={() =>
+                        handleImageChange(image)
+                      }
                     >
                       <img
                         src={getImageUrl(image)}
-                        alt={`${product.name} ${index + 1}`}
+                        alt={`${product.name} ${
+                          index + 1
+                        }`}
                       />
                     </button>
                   ))}
@@ -542,30 +657,45 @@ export default function ProductDetails() {
                     className="product-main-image"
                   />
                 ) : (
-                  <div className="product-no-image">No Image Available</div>
+                  <div className="product-no-image">
+                    No Image Available
+                  </div>
                 )}
 
                 {outOfStock && (
-                  <div className="product-image-out">Out of Stock</div>
+                  <div className="product-image-out">
+                    Out of Stock
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
           <div className="product-info-section">
-            <span className="product-category">
-              {subcategoryName || categoryName || "Product"}
+            <span className="product-category product-meta-text">
+              {subcategoryName ||
+                categoryName ||
+                "Product"}
             </span>
 
-            <h1>{product.name}</h1>
+            <h1 className="product-title product-main-heading">
+              {product.name}
+            </h1>
 
             <div className="product-price-row">
-              <strong>₹{Math.round(finalPrice).toLocaleString("en-IN")}</strong>
+              <strong className="product-price">
+                {`₹${Math.round(
+                  finalPrice
+                ).toLocaleString("en-IN")}`}
+              </strong>
 
               {hasDiscount && (
                 <>
-                  <del>
-                    ₹{Math.round(originalPrice).toLocaleString("en-IN")}
+                  <del className="product-original-price">
+                    ₹
+                    {Math.round(
+                      originalPrice
+                    ).toLocaleString("en-IN")}
                   </del>
 
                   <span className="product-discount">
@@ -576,64 +706,93 @@ export default function ProductDetails() {
             </div>
 
             {product.description && (
-              <p className="product-description">{product.description}</p>
+              <p className="product-description product-body-text">
+                {product.description}
+              </p>
             )}
 
-            {Object.entries(attributeOptions).map(([attributeName, values]) => (
-              <div className="product-variant-selector" key={attributeName}>
-                <div className="product-variant-title">
-                  <strong>{attributeName}</strong>
+            {Object.entries(attributeOptions).map(
+              ([attributeName, values]) => (
+                <div
+                  className="product-variant-selector"
+                  key={attributeName}
+                >
+                  <div className="product-variant-title product-label-text">
+                    <strong className="product-option-label">
+                      {attributeName}
+                    </strong>
 
-                  <span>{selectedAttributes[attributeName] || ""}</span>
+                    <span className="product-option-value">
+                      {selectedAttributes[
+                        attributeName
+                      ] || ""}
+                    </span>
+                  </div>
+
+                  <div className="product-variant-options">
+                    {values.map((value) => {
+                      const isSelected =
+                        String(
+                          selectedAttributes[
+                            attributeName
+                          ]
+                        ) === String(value);
+
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          className={`product-variant-option ${
+                            isSelected
+                              ? "product-variant-option-active"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleAttributeChange(
+                              attributeName,
+                              value
+                            )
+                          }
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-
-                <div className="product-variant-options">
-                  {values.map((value) => {
-                    const isSelected =
-                      String(selectedAttributes[attributeName]) ===
-                      String(value);
-
-                    return (
-                      <button
-                        key={value}
-                        type="button"
-                        className={`product-variant-option ${
-                          isSelected ? "product-variant-option-active" : ""
-                        }`}
-                        onClick={() =>
-                          handleAttributeChange(attributeName, value)
-                        }
-                      >
-                        {value}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+              )
+            )}
 
             {selectedVariant && (
               <div className="product-selected-variant">
-                {Object.entries(getAttributes(selectedVariant)).map(
-                  ([key, value]) => (
-                    <div key={key}>
-                      <span>{key}</span>
+                {Object.entries(
+                  getAttributes(selectedVariant)
+                ).map(([key, value]) => (
+                  <div key={key}>
+                    <span className="product-meta-text">
+                      {key}
+                    </span>
 
-                      <strong>{value}</strong>
-                    </div>
-                  ),
-                )}
+                    <strong className="product-value-text">
+                      {value}
+                    </strong>
+                  </div>
+                ))}
               </div>
             )}
 
             {!selectedVariant && variants.length > 0 && (
               <div className="product-selected-variant">
-                <strong>This combination is not available</strong>
+                <strong className="product-warning-text">
+                  This combination is not available
+                </strong>
               </div>
             )}
 
-            <div className="product-stock-row">
-              <strong>Stock:</strong>
+            <div className="product-stock-row product-label-text">
+              <strong className="product-label-text">
+                Stock:
+              </strong>
 
               {outOfStock ? (
                 <span className="product-stock-out">
@@ -644,19 +803,25 @@ export default function ProductDetails() {
                 <span className="product-stock-in">
                   <span></span>
                   In Stock
-                  <small>({stock} available)</small>
+                  <small className="product-small-text">
+                    ({stock} available)
+                  </small>
                 </span>
               )}
             </div>
 
-            <div className="product-quantity-row">
-              <strong>Quantity:</strong>
+            <div className="product-quantity-row product-label-text">
+              <strong className="product-label-text">
+                Quantity:
+              </strong>
 
               <div className="product-quantity-control">
                 <button
                   type="button"
                   onClick={decreaseQuantity}
-                  disabled={quantity <= 1 || outOfStock}
+                  disabled={
+                    quantity <= 1 || outOfStock
+                  }
                 >
                   <Minus size={18} />
                 </button>
@@ -666,7 +831,9 @@ export default function ProductDetails() {
                 <button
                   type="button"
                   onClick={increaseQuantity}
-                  disabled={outOfStock || quantity >= stock}
+                  disabled={
+                    outOfStock || quantity >= stock
+                  }
                 >
                   <Plus size={18} />
                 </button>
@@ -677,13 +844,24 @@ export default function ProductDetails() {
               <button
                 type="button"
                 className={`product-wishlist-button ${
-                  isWishlisted ? "product-wishlist-active" : ""
+                  isWishlisted
+                    ? "product-wishlist-active"
+                    : ""
                 }`}
                 onClick={handleWishlist}
               >
                 <Heart
                   size={22}
-                  fill={isWishlisted ? "currentColor" : "none"}
+                  color={
+                    isWishlisted
+                      ? "#ee0f0f"
+                      : "currentColor"
+                  }
+                  fill={
+                    isWishlisted
+                      ? "#e61818"
+                      : "none"
+                  }
                 />
               </button>
 
@@ -691,7 +869,9 @@ export default function ProductDetails() {
                 type="button"
                 className="product-cart-button"
                 onClick={handleAddToCart}
-                disabled={outOfStock || !selectedVariant}
+                disabled={
+                  outOfStock || !selectedVariant
+                }
               >
                 <ShoppingCart size={19} />
                 Add to Cart
@@ -701,7 +881,9 @@ export default function ProductDetails() {
                 type="button"
                 className="product-buy-button"
                 onClick={handleBuyNow}
-                disabled={outOfStock || !selectedVariant}
+                disabled={
+                  outOfStock || !selectedVariant
+                }
               >
                 Buy Now
               </button>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -24,6 +24,7 @@ import api from "../utils/axios";
 const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const cart = useSelector((state) => state.cart || []);
 
@@ -32,21 +33,15 @@ const Cart = () => {
       return "";
     }
 
-    if (
-      image.startsWith("http://") ||
-      image.startsWith("https://")
-    ) {
+    if (image.startsWith("http://") || image.startsWith("https://")) {
       return image;
     }
 
-    const baseURL =
-      api.defaults.baseURL || "http://localhost:3000/api";
+    const baseURL = api.defaults.baseURL || "http://localhost:3000/api";
 
     const cleanBaseURL = baseURL.replace(/\/api\/?$/, "");
 
-    const cleanImage = image
-      .replace(/\\/g, "/")
-      .replace(/^\/+/, "");
+    const cleanImage = image.replace(/\\/g, "/").replace(/^\/+/, "");
 
     return `${cleanBaseURL}/${cleanImage}`;
   };
@@ -122,9 +117,7 @@ const Cart = () => {
 
     const price = getOriginalPrice(product);
 
-    const discountType = variant
-      ? variant.discountType
-      : product.discountType;
+    const discountType = variant ? variant.discountType : product.discountType;
 
     const discountValue = variant
       ? Number(variant.discountValue) || 0
@@ -149,10 +142,7 @@ const Cart = () => {
     const price = getOriginalPrice(product);
     const discount = getDiscount(product);
 
-    return Math.max(
-      0,
-      Number((price - discount).toFixed(2))
-    );
+    return Math.max(0, Number((price - discount).toFixed(2)));
   };
 
   const subtotal = cart.reduce((total, product) => {
@@ -163,17 +153,10 @@ const Cart = () => {
   }, 0);
 
   const discount = cart.reduce((total, product) => {
-    return (
-      total +
-      getDiscount(product) *
-        (Number(product.quantity) || 0)
-    );
+    return total + getDiscount(product) * (Number(product.quantity) || 0);
   }, 0);
 
-  const discountedSubtotal = Math.max(
-    0,
-    subtotal - discount
-  );
+  const discountedSubtotal = Math.max(0, subtotal - discount);
 
   const shipping = discountedSubtotal >= 499 ? 0 : 50;
 
@@ -185,14 +168,11 @@ const Cart = () => {
         <div className="shop-cart-heading">
           <div>
             <h1>My Cart</h1>
-            <p>
-              Review your items and proceed to checkout.
-            </p>
+            <p>Review your items and proceed to checkout.</p>
           </div>
 
           <span className="shop-cart-count">
-            {cart.length}{" "}
-            {cart.length === 1 ? "item" : "items"}
+            {cart.length} {cart.length === 1 ? "item" : "items"}
           </span>
         </div>
 
@@ -204,15 +184,9 @@ const Cart = () => {
 
             <h2>Your cart is empty</h2>
 
-            <p>
-              Looks like you haven't added anything to your
-              cart yet.
-            </p>
+            <p>Looks like you haven't added anything to your cart yet.</p>
 
-            <Link
-              to="/products"
-              className="shop-cart-browse-button"
-            >
+            <Link to="/products" className="shop-cart-browse-button">
               Browse Products
             </Link>
           </div>
@@ -221,20 +195,15 @@ const Cart = () => {
             <div className="shop-cart-left">
               <div className="shop-cart-items">
                 {cart.map((product, index) => {
-                  const productDiscount =
-                    getDiscount(product);
+                  const productDiscount = getDiscount(product);
 
-                  const price =
-                    getOriginalPrice(product);
+                  const price = getOriginalPrice(product);
 
-                  const finalPrice =
-                    getFinalPrice(product);
+                  const finalPrice = getFinalPrice(product);
 
-                  const productImage =
-                    getProductImage(product);
+                  const productImage = getProductImage(product);
 
-                  const attributes =
-                    getVariantAttributes(product);
+                  const attributes = getVariantAttributes(product);
 
                   const categoryName =
                     typeof product.category === "object"
@@ -261,50 +230,30 @@ const Cart = () => {
                             alt={product.name}
                           />
                         ) : (
-                          <div className="shop-cart-no-image">
-                            No Image
-                          </div>
+                          <div className="shop-cart-no-image">No Image</div>
                         )}
                       </Link>
 
                       <div className="shop-cart-product-details">
                         <span className="shop-cart-category">
-                          {subcategoryName ||
-                            categoryName ||
-                            "Product"}
+                          {subcategoryName || categoryName || "Product"}
                         </span>
 
                         <h2>{product.name}</h2>
 
-                        {Object.entries(attributes).map(
-                          ([key, value]) => (
-                            <p key={key}>
-                              <strong>
-                                {key}:
-                              </strong>{" "}
-                              {value}
-                            </p>
-                          )
-                        )}
-
-                        {product.description && (
-                          <p>
-                            {product.description}
+                        {Object.entries(attributes).map(([key, value]) => (
+                          <p key={key}>
+                            <strong>{key}:</strong> {value}
                           </p>
-                        )}
+                        ))}
+
+                        {product.description && <p>{product.description}</p>}
 
                         <div className="shop-cart-price">
-                          ₹
-                          {Math.round(
-                            finalPrice
-                          ).toLocaleString("en-IN")}
-
+                          ₹{Math.round(finalPrice).toLocaleString("en-IN")}
                           {productDiscount > 0 && (
                             <span>
-                              ₹
-                              {Math.round(
-                                price
-                              ).toLocaleString("en-IN")}
+                              ₹{Math.round(price).toLocaleString("en-IN")}
                             </span>
                           )}
                         </div>
@@ -316,11 +265,9 @@ const Cart = () => {
                           onClick={() =>
                             dispatch(
                               decreaseQuantity({
-                                productId:
-                                  product._id,
-                                variantId:
-                                  product.variantId,
-                              })
+                                productId: product._id,
+                                variantId: product.variantId,
+                              }),
                             )
                           }
                           aria-label="Decrease quantity"
@@ -328,20 +275,16 @@ const Cart = () => {
                           <Minus size={15} />
                         </button>
 
-                        <span>
-                          {product.quantity}
-                        </span>
+                        <span>{product.quantity}</span>
 
                         <button
                           type="button"
                           onClick={() =>
                             dispatch(
                               increaseQuantity({
-                                productId:
-                                  product._id,
-                                variantId:
-                                  product.variantId,
-                              })
+                                productId: product._id,
+                                variantId: product.variantId,
+                              }),
                             )
                           }
                           aria-label="Increase quantity"
@@ -353,8 +296,7 @@ const Cart = () => {
                       <div className="shop-cart-item-total">
                         ₹
                         {Math.round(
-                          finalPrice *
-                            product.quantity
+                          finalPrice * product.quantity,
                         ).toLocaleString("en-IN")}
                       </div>
 
@@ -364,11 +306,9 @@ const Cart = () => {
                         onClick={() =>
                           dispatch(
                             removeFromCart({
-                              productId:
-                                product._id,
-                              variantId:
-                                product.variantId,
-                            })
+                              productId: product._id,
+                              variantId: product.variantId,
+                            }),
                           )
                         }
                         aria-label="Remove product"
@@ -381,10 +321,7 @@ const Cart = () => {
               </div>
 
               <div className="shop-cart-actions">
-                <Link
-                  to="/products"
-                  className="shop-cart-continue"
-                >
+                <Link to="/products" className="shop-cart-continue">
                   <ArrowLeft size={17} />
                   Continue Shopping
                 </Link>
@@ -392,9 +329,7 @@ const Cart = () => {
                 <button
                   type="button"
                   className="shop-cart-clear"
-                  onClick={() =>
-                    dispatch(clearCart())
-                  }
+                  onClick={() => setShowClearModal(true)}
                 >
                   <Trash2 size={16} />
                   Clear Cart
@@ -409,16 +344,11 @@ const Cart = () => {
                 <div className="shop-cart-subtotal-box">
                   <span>
                     Subtotal ({cart.length}{" "}
-                    {cart.length === 1
-                      ? "item"
-                      : "items"})
+                    {cart.length === 1 ? "item" : "items"})
                   </span>
 
                   <strong>
-                    ₹
-                    {Math.round(
-                      subtotal
-                    ).toLocaleString("en-IN")}
+                    ₹{Math.round(subtotal).toLocaleString("en-IN")}
                   </strong>
                 </div>
               </div>
@@ -428,45 +358,29 @@ const Cart = () => {
                   <span>Discount</span>
 
                   <strong className="shop-cart-discount-value">
-                    - ₹
-                    {Math.round(
-                      discount
-                    ).toLocaleString("en-IN")}
+                    - ₹{Math.round(discount).toLocaleString("en-IN")}
                   </strong>
                 </div>
 
                 <div className="shop-cart-summary-box">
                   <span>Shipping</span>
 
-                  <strong>
-                    {shipping === 0
-                      ? "Free"
-                      : `₹${shipping}`}
-                  </strong>
+                  <strong>{shipping === 0 ? "Free" : `₹${shipping}`}</strong>
                 </div>
               </div>
 
               <div className="shop-cart-total-box">
                 <span>Total</span>
 
-                <strong>
-                  ₹
-                  {Math.round(
-                    total
-                  ).toLocaleString("en-IN")}
-                </strong>
+                <strong>₹{Math.round(total).toLocaleString("en-IN")}</strong>
               </div>
 
               <button
                 type="button"
                 className="shop-cart-checkout"
-                onClick={() =>
-                  navigate("/checkout")
-                }
+                onClick={() => navigate("/checkout")}
               >
-                <span>
-                  Proceed to Checkout
-                </span>
+                <span>Proceed to Checkout</span>
 
                 <ArrowRight size={18} />
               </button>
@@ -478,14 +392,9 @@ const Cart = () => {
                   </div>
 
                   <div>
-                    <h4>
-                      Secure Payments
-                    </h4>
+                    <h4>Secure Payments</h4>
 
-                    <p>
-                      Your payment information is
-                      safe with us.
-                    </p>
+                    <p>Your payment information is safe with us.</p>
                   </div>
                 </div>
 
@@ -495,13 +404,9 @@ const Cart = () => {
                   </div>
 
                   <div>
-                    <h4>
-                      Fast Delivery
-                    </h4>
+                    <h4>Fast Delivery</h4>
 
-                    <p>
-                      Quick and reliable delivery.
-                    </p>
+                    <p>Quick and reliable delivery.</p>
                   </div>
                 </div>
 
@@ -511,16 +416,55 @@ const Cart = () => {
                   </div>
 
                   <div>
-                    <h4>
-                      Easy Returns
-                    </h4>
+                    <h4>Easy Returns</h4>
 
-                    <p>
-                      Hassle-free returns within 7
-                      days.
-                    </p>
+                    <p>Hassle-free returns within 7 days.</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showClearModal && (
+          <div
+            className="clear-cart-overlay"
+            onClick={() => setShowClearModal(false)}
+          >
+            <div
+              className="clear-cart-modal"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="clear-cart-icon">
+                <Trash2 size={24} />
+              </div>
+
+              <h2>Clear your cart?</h2>
+
+              <p>
+                Are you sure you want to remove all items from your cart? This
+                action cannot be undone.
+              </p>
+
+              <div className="clear-cart-modal-actions">
+                <button
+                  type="button"
+                  className="clear-cart-cancel"
+                  onClick={() => setShowClearModal(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="clear-cart-confirm"
+                  onClick={() => {
+                    dispatch(clearCart());
+                    setShowClearModal(false);
+                  }}
+                >
+                  Yes, Clear Cart
+                </button>
               </div>
             </div>
           </div>
@@ -531,11 +475,7 @@ const Cart = () => {
 };
 
 const ShoppingCartIcon = () => {
-  return (
-    <span className="shop-cart-empty-cart-icon">
-      🛒
-    </span>
-  );
+  return <span className="shop-cart-empty-cart-icon">🛒</span>;
 };
 
 export default Cart;

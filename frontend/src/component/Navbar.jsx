@@ -1,14 +1,16 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useState, useRef, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { removeUser } from "../utils/userSlice";
+import { removeToken } from "../utils/authSlice";
+import { clearCart } from "../utils/cartSlice";
+import { clearWishlist } from "../utils/wishlist";
 import {
   MapPin,
   Home,
   Grid2X2,
   Menu,
   X,
-  Bell,
   ShoppingCart,
   Heart,
   User,
@@ -17,12 +19,8 @@ import {
   Package,
   Search,
 } from "lucide-react";
-
 import api from "../utils/axios";
 import { toast } from "react-toastify";
-
-import { removeUser } from "../utils/userSlice";
-import { removeToken } from "../utils/authSlice";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -50,10 +48,18 @@ export default function Navbar() {
 
   const profileRef = useRef(null);
   const searchRef = useRef(null);
-const desktopSearchRef = useRef(null);
-const mobileSearchRef = useRef(null);
+  const desktopSearchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
+
   const user = useSelector((store) => store.user);
   const cart = useSelector((store) => store.cart);
+  const wishlist = useSelector((store) => store.wishlist || []);
+
+  const wishlistCount = Array.isArray(wishlist)
+    ? wishlist.length
+    : Array.isArray(wishlist?.items)
+      ? wishlist.items.length
+      : 0;
 
   const cartCount = Array.isArray(cart)
     ? cart.reduce(
@@ -61,6 +67,17 @@ const mobileSearchRef = useRef(null);
         0
       )
     : 0;
+
+  const isActive = (path) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    return (
+      location.pathname === path ||
+      location.pathname.startsWith(`${path}/`)
+    );
+  };
 
   const locations = [
     {
@@ -244,6 +261,13 @@ const mobileSearchRef = useRef(null);
 
     dispatch(removeUser());
     dispatch(removeToken());
+    dispatch(clearCart());
+    dispatch(clearWishlist());
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("cart");
+    localStorage.removeItem("wishlist");
 
     setProfileOpen(false);
     setMobileOpen(false);
@@ -252,14 +276,6 @@ const mobileSearchRef = useRef(null);
     toast.success("Logout successful");
 
     navigate("/login");
-  };
-
-  const isActive = (path) => {
-    if (path === "/") {
-      return location.pathname === "/";
-    }
-
-    return location.pathname.startsWith(path);
   };
 
   const getProductImage = (product) => {
@@ -289,121 +305,61 @@ const mobileSearchRef = useRef(null);
     setShowSuggestions(false);
     setMobileOpen(false);
   };
+
   const renderSearchSuggestions = () => {
-  if (!showSuggestions || !search.trim()) {
-    return null;
-  }
+    if (!showSuggestions || !search.trim()) {
+      return null;
+    }
 
-  return (
-    <div className="jbi-search-suggestions">
-      {suggestions.length === 0 ? (
-        <div className="jbi-search-no-results">
-          No products found
-        </div>
-      ) : (
-        suggestions.map((product) => {
-          const image = getProductImage(product);
+    return (
+      <div className="jbi-search-suggestions">
+        {suggestions.length === 0 ? (
+          <div className="jbi-search-no-results">
+            No products found
+          </div>
+        ) : (
+          suggestions.map((product) => {
+            const image = getProductImage(product);
 
-          return (
-            <Link
-              key={product._id}
-              to={`/products/${product._id}`}
-              className="jbi-search-suggestion"
-              onClick={() => {
-                setSearch("");
-                setSuggestions([]);
-                setShowSuggestions(false);
-                setMobileOpen(false);
-              }}
-            >
-              <div className="jbi-search-image">
-                {image ? (
-                  <img
-                    src={image}
-                    alt={product.name}
-                  />
-                ) : (
+            return (
+              <Link
+                key={product._id}
+                to={`/products/${product._id}`}
+                className="jbi-search-suggestion"
+                onClick={closeProductSearch}
+              >
+                <div className="jbi-search-image">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={product.name}
+                    />
+                  ) : (
+                    <span>
+                      {product.name
+                        ?.charAt(0)
+                        ?.toUpperCase() || "P"}
+                    </span>
+                  )}
+                </div>
+
+                <div className="jbi-search-product-info">
+                  <strong>{product.name}</strong>
+
                   <span>
-                    {product.name
-                      ?.charAt(0)
-                      ?.toUpperCase() || "P"}
+                    ₹
+                    {Math.round(
+                      Number(product.displayPrice || 0)
+                    ).toLocaleString("en-IN")}
                   </span>
-                )}
-              </div>
-
-              <div className="jbi-search-product-info">
-                <strong>{product.name}</strong>
-
-                <span>
-                  ₹
-                  {Math.round(
-                    Number(product.displayPrice || 0)
-                  ).toLocaleString("en-IN")}
-                </span>
-              </div>
-            </Link>
-          );
-        })
-      )}
-    </div>
-  );
-};
-
-  // const renderSearchSuggestions = () => {
-  //   if (!showSuggestions || !search.trim()) {
-  //     return null;
-  //   }
-
-  //   return (
-  //     <div className="jbi-search-suggestions">
-  //       {suggestions.length === 0 ? (
-  //         <div className="jbi-search-no-results">
-  //           No products found
-  //         </div>
-  //       ) : (
-  //         suggestions.map((product) => {
-  //           const image = getProductImage(product);
-
-  //           const price = Math.round(
-  //             Number(product.displayPrice || 0)
-  //           );
-
-  //           return (
-  //             <Link
-  //               key={product._id}
-  //               to={`/products/${product._id}`}
-  //               className="jbi-search-suggestion"
-  //               onClick={closeProductSearch}
-  //             >
-  //               <div className="jbi-search-image">
-  //                 {image ? (
-  //                   <img
-  //                     src={image}
-  //                     alt={product.name}
-  //                   />
-  //                 ) : (
-  //                   <span>
-  //                     {product.name
-  //                       ?.charAt(0)
-  //                       ?.toUpperCase() || "P"}
-  //                   </span>
-  //                 )}
-  //               </div>
-
-  //               <div className="jbi-search-product-info">
-  //                 <strong>{product.name}</strong>
-
-  //                 <span>
-  //                   ₹{price.toLocaleString("en-IN")}
-  //                 </span>
-  //               </div>
-  //             </Link>
-  //           );
-  //         })
-  //       )}
-  //     </div>
-  //   );
-  // };
+                </div>
+              </Link>
+            );
+          })
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -511,19 +467,19 @@ const mobileSearchRef = useRef(null);
               <>
                 <button
                   type="button"
-                  className="jbi-icon-button"
-                  title="Notifications"
-                >
-                  <Bell size={19} />
-                </button>
-
-                <button
-                  type="button"
-                  className="jbi-icon-button"
+                  className="jbi-icon-button jbi-wishlist-button"
                   title="Wishlist"
                   onClick={() => navigate("/wishlist")}
                 >
                   <Heart size={20} />
+
+                  {wishlistCount > 0 && (
+                    <span className="jbi-wishlist-badge">
+                      {wishlistCount > 99
+                        ? "99+"
+                        : wishlistCount}
+                    </span>
+                  )}
                 </button>
 
                 <button
@@ -579,7 +535,6 @@ const mobileSearchRef = useRef(null);
                         }
                       >
                         <User size={18} />
-
                         <span>My Profile</span>
                       </Link>
 
@@ -591,7 +546,6 @@ const mobileSearchRef = useRef(null);
                         }
                       >
                         <Heart size={18} />
-
                         <span>Wishlist</span>
                       </Link>
 
@@ -603,7 +557,6 @@ const mobileSearchRef = useRef(null);
                         }
                       >
                         <Package size={18} />
-
                         <span>My Orders</span>
                       </Link>
 
@@ -613,7 +566,6 @@ const mobileSearchRef = useRef(null);
                         onClick={handleLogout}
                       >
                         <LogOut size={18} />
-
                         <span>Log out</span>
                       </button>
                     </div>
@@ -707,7 +659,6 @@ const mobileSearchRef = useRef(null);
               onClick={closeMobileMenu}
             >
               <Home size={21} />
-
               <span>Home</span>
             </Link>
 
@@ -721,7 +672,6 @@ const mobileSearchRef = useRef(null);
               onClick={closeMobileMenu}
             >
               <ShoppingCart size={21} />
-
               <span>Products</span>
             </Link>
 
@@ -737,7 +687,12 @@ const mobileSearchRef = useRef(null);
               >
                 <Heart size={21} />
 
-                <span>Wishlist</span>
+                <span>
+                  Wishlist
+                  {wishlistCount > 0
+                    ? ` (${wishlistCount})`
+                    : ""}
+                </span>
               </Link>
             )}
 
@@ -751,7 +706,6 @@ const mobileSearchRef = useRef(null);
               onClick={closeMobileMenu}
             >
               <Grid2X2 size={21} />
-
               <span>Categories</span>
             </Link>
 
@@ -766,7 +720,6 @@ const mobileSearchRef = useRef(null);
                 onClick={closeMobileMenu}
               >
                 <Package size={21} />
-
                 <span>Orders</span>
               </Link>
             )}
@@ -803,7 +756,6 @@ const mobileSearchRef = useRef(null);
                 onClick={closeMobileMenu}
               >
                 <User size={21} />
-
                 <span>My Profile</span>
               </Link>
             )}

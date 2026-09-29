@@ -27,6 +27,7 @@ import SubcategoryPage from "./component/SubcategoryPage";
 import SubcategoryProducts from "./component/SubcategoryProducts";
 
 import Slider from "./component/Slider";
+import NotFound from "./component/NotFound";
 
 function App() {
   return (
@@ -76,19 +77,27 @@ function App() {
 
           <Route path="orders/:id" element={<OrderDetails />} />
 
-          <Route
-            path="order-success"
-            element={<OrderSuccess />}
-          />
+          <Route path="order-success" element={<OrderSuccess />} />
 
-          <Route
-            path="update-profile"
-            element={<UpdateProfile />}
-          />
+          <Route path="update-profile" element={<UpdateProfile />} />
+
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
 
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        pauseOnFocusLoss
+        hideProgressBar={false}
+        theme="light"
+        toastClassName="custom-toast"
+        bodyClassName="custom-toast-body"
+      />
     </BrowserRouter>
   );
 }

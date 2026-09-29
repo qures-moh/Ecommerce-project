@@ -1,19 +1,21 @@
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { Heart, ShoppingCart } from "lucide-react";
+import { toast } from "react-toastify";
 
 import { toggleWishlist } from "../utils/wishlist";
 import { addToCart } from "../utils/cartSlice";
 import api from "../utils/axios";
-
-
 
 const getImageUrl = (image) => {
   if (!image || typeof image !== "string") {
     return "";
   }
 
-  if (image.startsWith("http://") || image.startsWith("https://")) {
+  if (
+    image.startsWith("http://") ||
+    image.startsWith("https://")
+  ) {
     return image;
   }
 
@@ -29,13 +31,18 @@ const getImageUrl = (image) => {
 };
 
 const getVariant = (product) => {
-  if (!Array.isArray(product?.variants) || product.variants.length === 0) {
+  if (
+    !Array.isArray(product?.variants) ||
+    product.variants.length === 0
+  ) {
     return null;
   }
 
   if (product.variantId) {
     const selectedVariant = product.variants.find(
-      (variant) => String(variant._id) === String(product.variantId)
+      (variant) =>
+        String(variant._id) ===
+        String(product.variantId)
     );
 
     if (selectedVariant) {
@@ -44,8 +51,9 @@ const getVariant = (product) => {
   }
 
   return (
-    product.variants.find((variant) => variant.isActive !== false) ||
-    product.variants[0]
+    product.variants.find(
+      (variant) => variant.isActive !== false
+    ) || product.variants[0]
   );
 };
 
@@ -55,7 +63,8 @@ const getFinalPrice = (variant) => {
   }
 
   const price = Number(variant.price) || 0;
-  const discountValue = Number(variant.discountValue) || 0;
+  const discountValue =
+    Number(variant.discountValue) || 0;
 
   if (variant.discountType === "percentage") {
     return Math.max(
@@ -65,7 +74,10 @@ const getFinalPrice = (variant) => {
   }
 
   if (variant.discountType === "flat") {
-    return Math.max(0, price - discountValue);
+    return Math.max(
+      0,
+      price - discountValue
+    );
   }
 
   return price;
@@ -88,7 +100,14 @@ const Wishlist = () => {
   const navigate = useNavigate();
 
   const wishlist = useSelector(
-    (state) => state.wishlist || state.whishlist || []
+    (state) =>
+      state.wishlist ||
+      state.whishlist ||
+      []
+  );
+
+  const cart = useSelector(
+    (state) => state.cart || []
   );
 
   const handleAddToCart = (product) => {
@@ -100,26 +119,109 @@ const Wishlist = () => {
     }
 
     if (Number(variant.stock) <= 0) {
+      toast.error("Product is out of stock");
       return;
     }
+
+    const alreadyInCart = cart.some((item) => {
+      const itemProductId =
+        item.product || item._id;
+
+      const itemVariantId =
+        item.variantId ||
+        item.variant?._id;
+
+      return (
+        String(itemProductId) ===
+          String(product._id) &&
+        String(itemVariantId) ===
+          String(variant._id)
+      );
+    });
+
+    if (alreadyInCart) {
+      toast.info(
+        <div className="existing-cart-toast">
+          <span>
+            Product is already in your cart
+          </span>
+
+          <button
+            type="button"
+            className="existing-cart-link"
+            onClick={() => {
+              toast.dismiss();
+              navigate("/cart");
+            }}
+          >
+            Go to Cart
+          </button>
+        </div>
+      );
+
+      return;
+    }
+
+    const finalPrice = getFinalPrice(variant);
+
+    const attributes = Object.fromEntries(
+      getAttributes(variant.attributes)
+    );
 
     dispatch(
       addToCart({
         _id: product._id,
         product: product._id,
         name: product.name,
+
         variantId: variant._id,
+
         variant,
-        attributes: Object.fromEntries(
-          getAttributes(variant.attributes)
-        ),
-        price: getFinalPrice(variant),
-        originalPrice: Number(variant.price) || 0,
-        stock: Number(variant.stock) || 0,
+
+        attributes,
+
+        price: finalPrice,
+
+        originalPrice:
+          Number(variant.price) || 0,
+
+        stock:
+          Number(variant.stock) || 0,
+
         images: variant.images || [],
-        image: variant.images?.[0] || "",
+
+        image:
+          variant.images?.[0] || "",
+
         quantity: 1,
       })
+    );
+
+    toast.success(
+      <div className="added-cart-toast">
+        <span>
+          {product.name} added to cart
+        </span>
+
+        <button
+          type="button"
+          className="added-cart-link"
+          onClick={() => {
+            toast.dismiss();
+            navigate("/cart");
+          }}
+        >
+          Go to Cart
+        </button>
+      </div>
+    );
+  };
+
+  const handleRemoveFromWishlist = (product) => {
+    dispatch(toggleWishlist(product));
+
+    toast.info(
+      `${product.name} removed from wishlist`
     );
   };
 
@@ -130,12 +232,17 @@ const Wishlist = () => {
         <div className="wish-header">
           <div>
             <h1>My Wishlist</h1>
-            <p>Save your favorite products for later.</p>
+
+            <p>
+              Save your favorite products for later.
+            </p>
           </div>
 
           <div className="wish-count">
             {wishlist.length}{" "}
-            {wishlist.length === 1 ? "item" : "items"}
+            {wishlist.length === 1
+              ? "item"
+              : "items"}
           </div>
         </div>
 
@@ -146,10 +253,13 @@ const Wishlist = () => {
               <Heart size={38} />
             </div>
 
-            <h2>Your wishlist is empty</h2>
+            <h2>
+              Your wishlist is empty
+            </h2>
 
             <p>
-              You haven't added any products to your wishlist yet.
+              You haven't added any products
+              to your wishlist yet.
             </p>
 
             <Link to="/products">
@@ -161,7 +271,8 @@ const Wishlist = () => {
           <div className="wish-grid">
 
             {wishlist.map((product) => {
-              const variant = getVariant(product);
+              const variant =
+                getVariant(product);
 
               const image =
                 variant?.images?.[0] ||
@@ -172,30 +283,47 @@ const Wishlist = () => {
                 getFinalPrice(variant);
 
               const attributes =
-                getAttributes(variant?.attributes);
+                getAttributes(
+                  variant?.attributes
+                );
+
+              const isOutOfStock =
+                !variant ||
+                Number(variant.stock) <= 0;
 
               return (
                 <div
                   className="wish-card"
-                  key={`${product._id}-${variant?._id || ""}`}
+                  key={`${product._id}-${
+                    variant?._id || ""
+                  }`}
                 >
 
                   <div className="wish-image">
 
                     {image ? (
-                      <img
-                        src={getImageUrl(image)}
-                        alt={product.name}
-                      />
+                      <Link
+                        to={`/products/${product._id}`}
+                        className="wish-image-link"
+                      >
+                        <img
+                          src={getImageUrl(image)}
+                          alt={product.name}
+                        />
+                      </Link>
                     ) : (
-                      <div>No Image</div>
+                      <div className="wish-no-image">
+                        No Image
+                      </div>
                     )}
 
                     <button
                       type="button"
                       className="wish-remove"
                       onClick={() =>
-                        dispatch(toggleWishlist(product))
+                        handleRemoveFromWishlist(
+                          product
+                        )
                       }
                     >
                       <Heart
@@ -209,9 +337,19 @@ const Wishlist = () => {
                   <div className="wish-info">
 
                     {product.category &&
-                      typeof product.category === "string" && (
+                      typeof product.category ===
+                        "string" && (
                         <span className="wish-category">
                           {product.category}
+                        </span>
+                      )}
+
+                    {product.category &&
+                      typeof product.category ===
+                        "object" &&
+                      product.category.name && (
+                        <span className="wish-category">
+                          {product.category.name}
                         </span>
                       )}
 
@@ -220,14 +358,16 @@ const Wishlist = () => {
                     {attributes.length > 0 && (
                       <div className="wish-attributes">
 
-                        {attributes.map(([key, value]) => (
-                          <span key={key}>
-                            <strong>
-                              {key}:
-                            </strong>{" "}
-                            {value}
-                          </span>
-                        ))}
+                        {attributes.map(
+                          ([key, value]) => (
+                            <span key={key}>
+                              <strong>
+                                {key}:
+                              </strong>{" "}
+                              {value}
+                            </span>
+                          )
+                        )}
 
                       </div>
                     )}
@@ -249,19 +389,19 @@ const Wishlist = () => {
                         type="button"
                         className="wish-cart"
                         onClick={() =>
-                          handleAddToCart(product)
+                          handleAddToCart(
+                            product
+                          )
                         }
-                        disabled={
-                          !variant ||
-                          Number(variant.stock) <= 0
-                        }
+                        disabled={isOutOfStock}
                       >
-                        <ShoppingCart size={17} />
+                        <ShoppingCart
+                          size={17}
+                        />
 
-                        {variant &&
-                        Number(variant.stock) > 0
-                          ? "Add to Cart"
-                          : "Out of Stock"}
+                        {isOutOfStock
+                          ? "Out of Stock"
+                          : "Add to Cart"}
                       </button>
 
                     </div>
