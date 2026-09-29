@@ -203,6 +203,7 @@ const AdminProducts = () => {
   const [categories, setCategories] = useState([]);
 
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
 
   const [page, setPage] = useState(1);
@@ -227,8 +228,17 @@ const AdminProducts = () => {
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     fetchProducts();
-  }, [page, category]);
+  }, [page, category, debouncedSearch]);
 
   const fetchCategories = async () => {
     try {
@@ -266,8 +276,8 @@ const AdminProducts = () => {
         limit,
       };
 
-      if (search.trim()) {
-        params.search = search.trim();
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
       }
 
       if (category) {
@@ -319,9 +329,8 @@ const AdminProducts = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-
     setPage(1);
-    fetchProducts();
+    setDebouncedSearch(search.trim());
   };
 
   const handleCategoryChange = (e) => {
@@ -376,11 +385,8 @@ const AdminProducts = () => {
 
   const clearSearch = () => {
     setSearch("");
+    setDebouncedSearch("");
     setPage(1);
-
-    setTimeout(() => {
-      fetchProducts();
-    }, 0);
   };
 
   const renderProductImage = (product) => {
