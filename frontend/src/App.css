@@ -14,7 +14,7 @@
 
 }
 
-/* Reference typography utilities */
+
 .font-normal {
   font-weight: var(--font-normal);
 }
@@ -122,9 +122,7 @@ body {
   font-size: var(--font-large);
 }
 
-/* =========================
-   LOGIN / SIGNUP
-========================= */
+
 
 .login {
   min-height: 100vh;
@@ -149,7 +147,7 @@ body {
     0 5px 20px rgba(35, 25, 70, 0.05);
 }
 
-/* Heading */
+
 
 .login-container h1 {
   margin: 0 0 30px;
@@ -165,7 +163,7 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Form */
+
 
 .login-container form {
   display: flex;
@@ -173,7 +171,7 @@ body {
   gap: 16px;
 }
 
-/* Inputs */
+
 
 .login-container input {
   width: 100%;
@@ -193,13 +191,13 @@ body {
   transition: 0.25s ease;
 }
 
-/* Placeholder */
+
 
 .login-container input::placeholder {
   color: #8a8a99;
 }
 
-/* Input focus */
+
 
 .login-container input:focus {
   background: #ffffff;
@@ -208,14 +206,14 @@ body {
   box-shadow: 0 0 0 4px rgba(163, 42, 168, 0.08);
 }
 
-/* Date input */
+
 
 .login-container input[type="date"] {
   color: #252536;
   cursor: pointer;
 }
 
-/* Select */
+
 
 .login-container .gender-select {
   width: 100%;
@@ -237,7 +235,7 @@ body {
   transition: 0.25s ease;
 }
 
-/* Select focus */
+
 
 .login-container .gender-select:focus {
   background: #ffffff;
@@ -246,7 +244,7 @@ body {
   box-shadow: 0 0 0 4px rgba(163, 42, 168, 0.08);
 }
 
-/* Button */
+
 
 .login-container button {
   width: 100%;
@@ -271,7 +269,7 @@ body {
   transition: 0.2s ease;
 }
 
-/* Button hover */
+
 
 .login-container button:hover {
   transform: translateY(-2px);
@@ -279,13 +277,13 @@ body {
   box-shadow: 0 14px 28px rgba(150, 45, 175, 0.32);
 }
 
-/* Button active */
+
 
 .login-container button:active {
   transform: translateY(0);
 }
 
-/* Bottom text */
+
 
 .login-container p {
   margin: 25px 0 0;
@@ -296,7 +294,7 @@ body {
   font-size: 16px;
 }
 
-/* Link */
+
 
 .login-container p a {
   color: #9c249f;
@@ -304,7 +302,7 @@ body {
   text-decoration: none;
 }
 
-/* Link hover */
+
 
 .login-container p a:hover {
   color: #5967d8;
@@ -346,7 +344,7 @@ body {
 .login-container input[type="file"]::file-selector-button:hover {
   background: #333;
 }
-/* ========================= DESKTOP ========================= */
+
 .navbar-wrapper {
   width: 100%;
   padding: 12px 25px;
@@ -363,19 +361,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-} /* Logo */
+} 
 .NavBar-image img {
   width: 48px;
   height: 48px;
   object-fit: cover;
   border-radius: 12px;
   display: block;
-} /* Navigation content */
+} 
 .Navabr-content {
   display: flex;
   align-items: center;
   gap: 8px;
-} /* Home / Cart */
+} 
 .nav-link {
   width: 42px;
   height: 42px;
@@ -393,7 +391,7 @@ body {
   width: 23px;
   height: 23px;
   object-fit: contain;
-} /* Profile */
+} 
 .profile-container {
   display: flex;
   align-items: center;
@@ -418,7 +416,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-} /* Favorite */
+} 
 .nav-fav {
   width: 42px;
   height: 42px;
@@ -435,7 +433,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-} /* Buttons */
+} 
 .logout-button {
   height: 40px;
   padding: 0 15px;
@@ -453,7 +451,7 @@ body {
   color: #ffffff;
   border-color: #111111;
 }
-/* ========================= SLIDER ========================= */
+
 .slider {
   width: 100%;
   padding: 18px 25px 0;
@@ -513,7 +511,7 @@ body {
 .slider-content button:hover {
   transform: translateY(-2px);
   background: #f1f1f1;
-} /* ========================= ARROWS ========================= */
+} 
 .slider-arrow {
   position: absolute;
   top: 50%;
@@ -541,7 +539,7 @@ body {
 }
 .slider-next {
   right: 20px;
-} /* ========================= DOTS ========================= */
+} 
 .slider-dots {
   position: absolute;
   bottom: 22px;
@@ -1474,9 +1472,7 @@ body {
   text-decoration: none;
   font-weight: 700;
 }
-/* =========================
-   WISHLIST PAGE
-========================= */
+
 
 .wishlist-page {
   min-height: 100vh;
@@ -1490,9 +1486,7 @@ body {
   margin: 0 auto;
 }
 
-/* =========================
-   HEADER
-========================= */
+
 
 .wishlist-header {
   display: flex;
@@ -1525,9 +1519,7 @@ body {
   box-shadow: 0 5px 20px rgba(52, 31, 110, 0.06);
 }
 
-/* =========================
-   WISHLIST GRID
-========================= */
+
 
 .wishlist-grid {
   display: grid;
@@ -1535,9 +1527,7 @@ body {
   gap: 22px;
 }
 
-/* =========================
-   CARD
-========================= */
+
 
 .wishlist-card {
   background: white;
@@ -1553,9 +1543,7 @@ body {
   box-shadow: 0 14px 35px rgba(31, 25, 72, 0.11);
 }
 
-/* =========================
-   IMAGE
-========================= */
+
 
 .wishlist-image {
   position: relative;
@@ -1573,9 +1561,7 @@ body {
   display: block;
 }
 
-/* =========================
-   REMOVE HEART
-========================= */
+
 
 .wishlist-remove {
   position: absolute;
@@ -1607,9 +1593,7 @@ body {
   background: #fff1f2;
 }
 
-/* =========================
-   PRODUCT INFO
-========================= */
+
 
 .wishlist-info {
   padding: 4px 18px 20px;
@@ -1654,9 +1638,7 @@ body {
   overflow: hidden;
 }
 
-/* =========================
-   PRICE + CART
-========================= */
+
 
 .wishlist-bottom {
   display: flex;
@@ -1698,9 +1680,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* =========================
-   EMPTY WISHLIST
-========================= */
+
 
 .empty-wishlist {
   min-height: 430px;
@@ -1775,9 +1755,7 @@ body {
   background: #4820bd;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+
 
 @media (max-width: 1200px) {
   .wishlist-grid {
@@ -1830,9 +1808,7 @@ body {
     flex: 1;
   }
 }
-/* =========================
-   CHECKOUT PAGE
-========================= */
+
 
 .checkout-page {
   min-height: 100vh;
@@ -1845,9 +1821,7 @@ body {
   margin: 0 auto;
 }
 
-/* =========================
-   HEADER
-========================= */
+
 
 .checkout-header {
   margin-bottom: 30px;
@@ -1866,9 +1840,7 @@ body {
   font-size: 16px;
 }
 
-/* =========================
-   MAIN LAYOUT
-========================= */
+
 
 .checkout-content {
   display: grid;
@@ -1877,9 +1849,7 @@ body {
   align-items: start;
 }
 
-/* =========================
-   CARD
-========================= */
+
 
 .checkout-card {
   background: #ffffff;
@@ -1889,9 +1859,7 @@ body {
   box-shadow: 0 6px 25px rgba(35, 25, 75, 0.06);
 }
 
-/* =========================
-   CARD HEADER
-========================= */
+
 
 .checkout-card-header {
   display: flex;
@@ -1926,9 +1894,7 @@ body {
   font-size: 14px;
 }
 
-/* =========================
-   FORM
-========================= */
+
 
 .checkout-form {
   display: flex;
@@ -2002,9 +1968,7 @@ body {
   resize: vertical;
 }
 
-/* =========================
-   ORDER SUMMARY
-========================= */
+
 
 .order-summary {
   position: sticky;
@@ -2031,9 +1995,7 @@ body {
   margin-top: 8px;
 }
 
-/* =========================
-   CART ITEMS
-========================= */
+
 
 .checkout-items {
   margin-top: 15px;
@@ -2101,9 +2063,7 @@ body {
   white-space: nowrap;
 }
 
-/* =========================
-   EMPTY CART
-========================= */
+
 
 .checkout-empty {
   padding: 35px 10px;
@@ -2132,9 +2092,7 @@ body {
   cursor: pointer;
 }
 
-/* =========================
-   TOTALS
-========================= */
+
 
 .order-totals {
   padding-top: 20px;
@@ -2184,9 +2142,7 @@ body {
   color: #5b2be0;
 }
 
-/* =========================
-   PLACE ORDER BUTTON
-========================= */
+
 
 .place-order-btn {
   width: 100%;
@@ -2224,9 +2180,7 @@ body {
   transform: none;
 }
 
-/* =========================
-   TERMS
-========================= */
+
 
 .checkout-terms {
   margin: 14px 0 0;
@@ -2244,9 +2198,7 @@ body {
   text-decoration: underline;
 }
 
-/* =========================
-   TRUST SECTION
-========================= */
+
 
 .checkout-trust {
   display: grid;
@@ -2294,9 +2246,7 @@ body {
   margin: 0 auto;
 }
 
-/* =========================
-   PAGE HEADER
-========================= */
+
 
 .profile-page-header {
   margin-bottom: 28px;
@@ -2315,9 +2265,7 @@ body {
   color: #777;
 }
 
-/* =========================
-   MAIN PROFILE CARD
-========================= */
+
 
 .profile-card {
   background: #ffffff;
@@ -2327,9 +2275,7 @@ body {
   overflow: hidden;
 }
 
-/* =========================
-   PROFILE HEADER
-========================= */
+
 
 .profile-card-header {
   padding: 30px 34px;
@@ -2380,9 +2326,7 @@ body {
   color: #777;
 }
 
-/* =========================
-   EDIT BUTTON
-========================= */
+
 
 .edit-profile-btn {
   display: flex;
@@ -2409,9 +2353,7 @@ body {
   border-color: #cfcfcf;
 }
 
-/* =========================
-   USER DETAILS
-========================= */
+
 
 .profile-details {
   padding: 30px 34px;
@@ -2434,9 +2376,7 @@ body {
   color: #777;
 }
 
-/* =========================
-   DETAILS GRID
-========================= */
+
 
 .details-grid {
   display: grid;
@@ -2497,9 +2437,7 @@ body {
   word-break: break-word;
 }
 
-/* =========================
-   MY ORDERS
-========================= */
+
 
 .orders-card {
   margin-top: 22px;
@@ -2553,9 +2491,7 @@ body {
   color: #777;
 }
 
-/* =========================
-   VIEW ORDERS BUTTON
-========================= */
+
 
 .view-orders-btn {
   padding: 12px 22px;
@@ -2579,9 +2515,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* =========================
-   EMPTY PROFILE
-========================= */
+
 
 .profile-empty {
   max-width: 500px;
@@ -2614,9 +2548,7 @@ body {
   cursor: pointer;
 }
 
-/* =========================
-   TABLET
-========================= */
+
 
 @media (max-width: 800px) {
 
@@ -2641,9 +2573,7 @@ body {
   }
 }
 
-/* =========================
-   MOBILE
-========================= */
+
 
 @media (max-width: 600px) {
 
@@ -2871,9 +2801,7 @@ body {
   }
 
 }
-/* =========================================
-   PROFILE PAGE
-========================================= */
+
 
 .profile-page {
   min-height: calc(100vh - 70px);
@@ -2883,7 +2811,7 @@ body {
   box-sizing: border-box;
 }
 
-/* IMPORTANT: reset any previous grid/flex styles */
+
 .profile-container {
   width: 100%;
   max-width: 1050px;
@@ -2894,9 +2822,7 @@ body {
   box-sizing: border-box;
 }
 
-/* =========================================
-   PAGE TITLE
-========================================= */
+
 
 .profile-page-header {
   width: 100%;
@@ -2918,9 +2844,7 @@ body {
   line-height: 1.5;
 }
 
-/* =========================================
-   PROFILE CARD
-========================================= */
+
 
 .profile-card {
   width: 100%;
@@ -2931,9 +2855,7 @@ body {
   box-sizing: border-box;
 }
 
-/* =========================================
-   PROFILE TOP SECTION
-========================================= */
+
 
 .profile-card-header {
   width: 100%;
@@ -2954,9 +2876,7 @@ body {
   gap: 18px;
 }
 
-/* =========================================
-   PROFILE IMAGE
-========================================= */
+
 
 .profile-image {
   width: 82px;
@@ -2983,9 +2903,7 @@ body {
   display: block;
 }
 
-/* =========================================
-   USER NAME
-========================================= */
+
 
 .profile-user-info h2 {
   margin: 0;
@@ -3001,9 +2919,7 @@ body {
   font-size: 14px;
 }
 
-/* =========================================
-   EDIT PROFILE BUTTON
-========================================= */
+
 
 .edit-profile-btn {
   display: flex;
@@ -3030,9 +2946,7 @@ body {
   border-color: #cfcfcf;
 }
 
-/* =========================================
-   USER DETAILS SECTION
-========================================= */
+
 
 .profile-details {
   width: 100%;
@@ -3057,9 +2971,7 @@ body {
   font-size: 14px;
 }
 
-/* =========================================
-   DETAILS GRID
-========================================= */
+
 
 .details-grid {
   width: 100%;
@@ -3069,9 +2981,7 @@ body {
   gap: 16px;
 }
 
-/* =========================================
-   DETAIL BOX
-========================================= */
+
 
 .detail-item {
   min-width: 0;
@@ -3090,9 +3000,7 @@ body {
   box-sizing: border-box;
 }
 
-/* =========================================
-   DETAIL ICON
-========================================= */
+
 
 .detail-icon {
   width: 42px;
@@ -3110,9 +3018,7 @@ body {
   color: #555;
 }
 
-/* =========================================
-   DETAIL TEXT
-========================================= */
+
 
 .detail-item span {
   display: block;
@@ -3133,9 +3039,7 @@ body {
   word-break: break-word;
 }
 
-/* =========================================
-   MY ORDERS
-========================================= */
+
 
 .orders-card {
   width: 100%;
@@ -3154,9 +3058,7 @@ body {
   box-sizing: border-box;
 }
 
-/* =========================================
-   ORDER CONTENT
-========================================= */
+
 
 .orders-card-content {
   display: flex;
@@ -3195,9 +3097,7 @@ body {
   line-height: 1.4;
 }
 
-/* =========================================
-   VIEW ORDERS BUTTON
-========================================= */
+
 
 .view-orders-btn {
   padding: 12px 24px;
@@ -3219,9 +3119,7 @@ body {
   background: #000000;
 }
 
-/* =========================================
-   EMPTY PROFILE
-========================================= */
+
 
 .profile-empty {
   width: 100%;
@@ -3255,9 +3153,7 @@ body {
   cursor: pointer;
 }
 
-/* =========================================
-   TABLET
-========================================= */
+
 
 @media (max-width: 800px) {
 
@@ -3282,9 +3178,7 @@ body {
   }
 }
 
-/* =========================================
-   MOBILE
-========================================= */
+
 
 @media (max-width: 600px) {
 
@@ -4015,9 +3909,7 @@ body {
     font-size: 14px;
   }
 }
-/* =========================
-   NAVBAR
-========================= */
+
 
 .navbar-wrapper {
   width: 100%;
@@ -4042,9 +3934,7 @@ body {
 }
 
 
-/* =========================
-   LOGO
-========================= */
+
 
 .NavBar-logo {
   display: flex;
@@ -4079,9 +3969,7 @@ body {
 }
 
 
-/* =========================
-   NAV CONTENT
-========================= */
+
 
 .Navabr-content {
   display: flex;
@@ -4092,9 +3980,7 @@ body {
 }
 
 
-/* =========================
-   NORMAL NAV LINKS
-========================= */
+
 
 .nav-link {
   display: flex;
@@ -4125,9 +4011,7 @@ body {
 }
 
 
-/* =========================
-   PROFILE
-========================= */
+
 
 .profile-link {
   display: flex;
@@ -4158,9 +4042,7 @@ body {
 }
 
 
-/* =========================
-   ADMIN PANEL
-========================= */
+
 
 .admin-button {
   display: flex;
@@ -4188,9 +4070,7 @@ body {
 }
 
 
-/* =========================
-   ADD PRODUCT
-========================= */
+
 
 .add-product-button {
   display: flex;
@@ -4221,9 +4101,7 @@ body {
 }
 
 
-/* =========================
-   LOGOUT
-========================= */
+
 
 .logout-button {
   display: flex;
@@ -4253,9 +4131,7 @@ body {
 }
 
 
-/* =========================
-   LOGIN
-========================= */
+
 
 .login-button {
   display: flex;
@@ -4283,9 +4159,7 @@ body {
 }
 
 
-/* =========================
-   RESPONSIVE
-========================= */
+
 
 @media (max-width: 1000px) {
   .NavBar-container {
@@ -4319,9 +4193,7 @@ body {
     flex-wrap: wrap;
   }
 }
-/* =========================================
-   ADMIN LAYOUT
-========================================= */
+
 
 .admin-layout {
   min-height: 100vh;
@@ -4332,9 +4204,7 @@ body {
 }
 
 
-/* =========================================
-   SIDEBAR
-========================================= */
+
 
 .admin-sidebar {
   width: 260px;
@@ -4355,9 +4225,7 @@ body {
 }
 
 
-/* =========================================
-   LOGO
-========================================= */
+
 
 .admin-logo-section {
   height: 90px;
@@ -4412,9 +4280,7 @@ body {
 }
 
 
-/* =========================================
-   MENU
-========================================= */
+
 
 .admin-menu {
   flex: 1;
@@ -4443,9 +4309,7 @@ body {
 }
 
 
-/* =========================================
-   NAV LINK
-========================================= */
+
 
 .admin-nav-link {
   height: 48px;
@@ -4484,9 +4348,7 @@ body {
 }
 
 
-/* =========================================
-   SIDEBAR BOTTOM
-========================================= */
+
 
 .admin-sidebar-bottom {
   padding: 16px;
@@ -4567,9 +4429,7 @@ body {
 }
 
 
-/* =========================================
-   MAIN
-========================================= */
+
 
 .admin-main {
   width: calc(100% - 260px);
@@ -4580,9 +4440,7 @@ body {
 }
 
 
-/* =========================================
-   TOPBAR
-========================================= */
+
 
 .admin-topbar {
   height: 98px;
@@ -4599,9 +4457,7 @@ body {
 }
 
 
-/* =========================================
-   TOPBAR LEFT
-========================================= */
+
 
 .admin-topbar-left {
   display: flex;
@@ -4655,9 +4511,7 @@ body {
 }
 
 
-/* =========================================
-   TOPBAR RIGHT
-========================================= */
+
 
 .admin-topbar-right {
   display: flex;
@@ -4712,9 +4566,7 @@ body {
 }
 
 
-/* =========================================
-   ADMIN PROFILE
-========================================= */
+
 
 .admin-profile {
   display: flex;
@@ -4767,9 +4619,7 @@ body {
 }
 
 
-/* =========================================
-   LOGOUT
-========================================= */
+
 
 .admin-logout {
   height: 40px;
@@ -4801,18 +4651,14 @@ body {
 }
 
 
-/* =========================================
-   CONTENT
-========================================= */
+
 
 .admin-content {
   min-height: calc(100vh - 90px);
 }
 
 
-/* =========================================
-   MOBILE OVERLAY
-========================================= */
+
 
 .admin-overlay {
   display: none;
@@ -4827,9 +4673,7 @@ body {
 }
 
 
-/* =========================================
-   TABLET
-========================================= */
+
 
 @media (max-width: 1000px) {
 
@@ -4848,9 +4692,7 @@ body {
 }
 
 
-/* =========================================
-   MOBILE
-========================================= */
+
 
 @media (max-width: 768px) {
 
@@ -4912,9 +4754,7 @@ body {
 }
 
 
-/* =========================================
-   SMALL MOBILE
-========================================= */
+
 
 @media (max-width: 480px) {
 
@@ -4944,7 +4784,7 @@ body {
 }
 
 
-/* ================= HEADER ================= */
+
 
 .dashboard-header {
   display: flex;
@@ -4985,7 +4825,7 @@ body {
 }
 
 
-/* ================= STAT CARDS ================= */
+
 
 .dashboard-stats {
   display: grid;
@@ -5090,7 +4930,7 @@ body {
 }
 
 
-/* ================= PANELS ================= */
+
 
 .dashboard-middle {
   display: grid;
@@ -5153,7 +4993,7 @@ body {
 }
 
 
-/* ================= SALES CHART ================= */
+
 
 .sales-panel {
   min-height: 370px;
@@ -5311,7 +5151,7 @@ body {
 }
 
 
-/* ================= ORDER SUMMARY ================= */
+
 
 .order-summary {
   min-height: 370px;
@@ -5406,7 +5246,7 @@ body {
 }
 
 
-/* ================= BOTTOM ================= */
+
 
 .dashboard-bottom {
   display: grid;
@@ -5417,7 +5257,7 @@ body {
 }
 
 
-/* ================= ORDERS TABLE ================= */
+
 
 .recent-orders {
   min-width: 0;
@@ -5568,7 +5408,7 @@ body {
 }
 
 
-/* ================= TOP PRODUCTS ================= */
+
 
 .top-products {
   min-height: 350px;
@@ -5647,7 +5487,7 @@ body {
 }
 
 
-/* ================= RESPONSIVE ================= */
+
 
 @media (max-width: 1200px) {
 
@@ -5718,9 +5558,7 @@ body {
   box-sizing: border-box;
 }
 
-/* =========================
-   DASHBOARD HEADING
-========================= */
+
 
 .dashboard-heading {
   display: flex;
@@ -5753,9 +5591,7 @@ body {
   cursor: pointer;
 }
 
-/* =========================
-   STATISTICS
-========================= */
+
 
 .dashboard-stats {
   display: grid;
@@ -5822,9 +5658,7 @@ body {
   font-size: 14px;
 }
 
-/* =========================
-   COMMON CARD
-========================= */
+
 
 .dashboard-card {
   background: #ffffff;
@@ -5872,9 +5706,7 @@ body {
   color: white;
 }
 
-/* =========================
-   RECENT ORDERS
-========================= */
+
 
 .recent-orders-card {
   margin-bottom: 25px;
@@ -5953,9 +5785,7 @@ body {
   font-weight: 600;
 }
 
-/* =========================
-   ORDER STATUS
-========================= */
+
 
 .order-status {
   display: inline-block;
@@ -5985,9 +5815,7 @@ body {
   color: #e5484d;
 }
 
-/* =========================
-   TABLE ACTION
-========================= */
+
 
 .table-actions {
   display: flex;
@@ -6013,9 +5841,7 @@ body {
   border-color: #ddd3ff;
 }
 
-/* =========================
-   BOTTOM GRID
-========================= */
+
 
 .dashboard-bottom-grid {
   display: grid;
@@ -6023,9 +5849,7 @@ body {
   gap: 25px;
 }
 
-/* =========================
-   TOP PRODUCTS
-========================= */
+
 
 .top-products-list {
   display: flex;
@@ -6088,9 +5912,7 @@ body {
   font-size: 14px;
 }
 
-/* =========================
-   STORE SUMMARY
-========================= */
+
 
 .store-summary-list {
   display: grid;
@@ -6131,9 +5953,7 @@ body {
   font-size: 17px;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
+
 
 @media (max-width: 1200px) {
   .dashboard-stats {
@@ -6167,9 +5987,7 @@ body {
     font-size: 24px;
   }
 }
-/* =========================
-   RECENT CUSTOMERS
-========================= */
+
 
 .recent-users {
   display: flex;
@@ -6234,9 +6052,7 @@ body {
 }
 
 
-/* =========================
-   STORE OVERVIEW
-========================= */
+
 
 .store-overview {
   display: grid;
@@ -6287,9 +6103,7 @@ body {
 }
 
 
-/* =========================
-   EMPTY DATA
-========================= */
+
 
 .empty-message {
   padding: 30px 10px;
@@ -6305,9 +6119,7 @@ body {
 }
 
 
-/* =========================
-   RESPONSIVE
-========================= */
+
 
 @media (max-width: 700px) {
   .store-overview {
@@ -6322,9 +6134,7 @@ body {
     gap: 10px;
   }
 }
-/* ================================
-   ADMIN PRODUCTS PAGE
-================================ */
+
 
 .admin-products-page {
   padding: 28px 32px;
@@ -6333,9 +6143,7 @@ body {
   color: #1f2340;
 }
 
-/* ================================
-   HEADER
-================================ */
+
 
 .products-header {
   display: flex;
@@ -6376,9 +6184,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* ================================
-   FILTERS
-================================ */
+
 
 .product-filters {
   display: flex;
@@ -6435,9 +6241,7 @@ body {
   border-color: #6c63ff;
 }
 
-/* ================================
-   TABLE CARD
-================================ */
+
 
 .products-table-card {
   width: 100%;
@@ -6448,9 +6252,7 @@ body {
   box-shadow: 0 3px 15px rgba(35, 35, 70, 0.04);
 }
 
-/* ================================
-   TABLE
-================================ */
+
 
 .products-table {
   width: 100%;
@@ -6493,9 +6295,7 @@ body {
   border-bottom: none;
 }
 
-/* ================================
-   PRODUCT INFO
-================================ */
+
 
 .product-info {
   display: flex;
@@ -6535,18 +6335,14 @@ body {
   font-size: 12px;
 }
 
-/* ================================
-   PRICE
-================================ */
+
 
 .final-price {
   color: #5d55e9 !important;
   font-weight: 700;
 }
 
-/* ================================
-   ACTION BUTTONS
-================================ */
+
 
 .product-actions {
   display: flex;
@@ -6586,9 +6382,7 @@ body {
   background: #ffe1e5;
 }
 
-/* ================================
-   LOADING / EMPTY
-================================ */
+
 
 .products-loading,
 .products-empty {
@@ -6598,9 +6392,7 @@ body {
   font-size: 14px;
 }
 
-/* ================================
-   RESPONSIVE
-================================ */
+
 
 @media (max-width: 900px) {
   .admin-products-page {
@@ -6662,9 +6454,7 @@ body {
     border-radius: 10px;
   }
 }
-/* ================================
-   ADD PRODUCT PAGE
-================================ */
+
 
 .add-product-page {
   padding: 28px 32px;
@@ -6674,9 +6464,7 @@ body {
 }
 
 
-/* ================================
-   HEADER
-================================ */
+
 
 .add-product-header {
   margin-bottom: 25px;
@@ -6721,9 +6509,7 @@ body {
 }
 
 
-/* ================================
-   FORM
-================================ */
+
 
 .add-product-form {
   display: grid;
@@ -6736,9 +6522,7 @@ body {
 }
 
 
-/* ================================
-   SERVER ERROR
-================================ */
+
 
 .form-submit-error {
   grid-column: 1 / -1;
@@ -6757,9 +6541,7 @@ body {
 }
 
 
-/* ================================
-   CARD
-================================ */
+
 
 .form-card {
   background: #ffffff;
@@ -6791,9 +6573,7 @@ body {
 }
 
 
-/* ================================
-   FORM GROUP
-================================ */
+
 
 .form-group {
   display: flex;
@@ -6812,9 +6592,7 @@ body {
 }
 
 
-/* ================================
-   INPUT / SELECT / TEXTAREA
-================================ */
+
 
 .form-group input,
 .form-group select,
@@ -6871,9 +6649,7 @@ body {
 }
 
 
-/* ================================
-   INPUT ERROR
-================================ */
+
 
 .input-error {
   border-color: #e05267 !important;
@@ -6889,9 +6665,7 @@ body {
 }
 
 
-/* ================================
-   FIELD ERROR
-================================ */
+
 
 .field-error {
   display: block;
@@ -6905,9 +6679,7 @@ body {
 }
 
 
-/* ================================
-   FORM ROW
-================================ */
+
 
 .form-row {
   display: grid;
@@ -6918,9 +6690,7 @@ body {
 }
 
 
-/* ================================
-   PRICE
-================================ */
+
 
 .price-input {
   position: relative;
@@ -6950,9 +6720,7 @@ body {
 }
 
 
-/* ================================
-   IMAGE CARD
-================================ */
+
 
 .image-card {
   height: fit-content;
@@ -6963,9 +6731,7 @@ body {
 }
 
 
-/* ================================
-   UPLOAD AREA
-================================ */
+
 
 .upload-area {
   min-height: 280px;
@@ -7015,9 +6781,7 @@ body {
 }
 
 
-/* ================================
-   UPLOAD ERROR
-================================ */
+
 
 .upload-area-error {
   border-color: #e05267;
@@ -7036,9 +6800,7 @@ body {
 }
 
 
-/* ================================
-   IMAGE PREVIEW
-================================ */
+
 
 .image-preview {
   display: flex;
@@ -7082,9 +6844,7 @@ body {
 }
 
 
-/* ================================
-   ACTIONS
-================================ */
+
 
 .form-actions {
   grid-column: 1 / -1;
@@ -7153,9 +6913,7 @@ body {
 }
 
 
-/* ================================
-   RESPONSIVE
-================================ */
+
 
 @media (max-width: 900px) {
   .add-product-page {
@@ -7204,9 +6962,7 @@ body {
     min-height: 220px;
   }
 }
-/* =================================
-   EDIT PRODUCT PAGE
-================================= */
+
 
 .edit-product-page {
   min-height: 100%;
@@ -7216,9 +6972,7 @@ body {
 }
 
 
-/* =================================
-   HEADER
-================================= */
+
 
 .edit-product-header {
   margin-bottom: 25px;
@@ -7265,9 +7019,7 @@ body {
 }
 
 
-/* =================================
-   FORM
-================================= */
+
 
 .edit-product-form {
   display: grid;
@@ -7280,9 +7032,7 @@ body {
 }
 
 
-/* =================================
-   SERVER ERROR
-================================= */
+
 
 .form-submit-error {
   grid-column: 1 / -1;
@@ -7301,9 +7051,7 @@ body {
 }
 
 
-/* =================================
-   CARD
-================================= */
+
 
 .edit-form-card {
   padding: 25px;
@@ -7335,9 +7083,7 @@ body {
 }
 
 
-/* =================================
-   FORM GROUP
-================================= */
+
 
 .form-group {
   display: flex;
@@ -7412,9 +7158,7 @@ body {
 }
 
 
-/* =================================
-   ERROR
-================================= */
+
 
 .input-error {
   border-color: #e05267 !important;
@@ -7438,9 +7182,7 @@ body {
 }
 
 
-/* =================================
-   ROW
-================================= */
+
 
 .form-row {
   display: grid;
@@ -7451,9 +7193,7 @@ body {
 }
 
 
-/* =================================
-   PRICE
-================================= */
+
 
 .price-input {
   position: relative;
@@ -7483,9 +7223,7 @@ body {
 }
 
 
-/* =================================
-   IMAGE
-================================= */
+
 
 .image-card {
   height: fit-content;
@@ -7543,9 +7281,7 @@ body {
 }
 
 
-/* =================================
-   IMAGE PREVIEW
-================================= */
+
 
 .image-preview {
   display: flex;
@@ -7603,9 +7339,7 @@ body {
 }
 
 
-/* =================================
-   ACTIONS
-================================= */
+
 
 .edit-product-actions {
   grid-column: 1 / -1;
@@ -7672,9 +7406,7 @@ body {
 }
 
 
-/* =================================
-   LOADING
-================================= */
+
 
 .edit-product-loading {
   padding: 70px 20px;
@@ -7687,9 +7419,7 @@ body {
 }
 
 
-/* =================================
-   ERROR CARD
-================================= */
+
 
 .product-error-card {
   max-width: 500px;
@@ -7723,9 +7453,7 @@ body {
 }
 
 
-/* =================================
-   RESPONSIVE
-================================= */
+
 
 @media (max-width: 900px) {
   .edit-product-page {
@@ -14131,7 +13859,7 @@ body {
   transform: none;
 }
 
-/* ORDER SUMMARY */
+
 
 .shoply-order-summary {
   padding: 25px;
@@ -14160,7 +13888,7 @@ body {
   font-size: 14px;
 }
 
-/* ORDER ITEMS */
+
 
 .shoply-checkout-items {
   width: 100%;
@@ -14239,7 +13967,7 @@ body {
   font-weight: 700;
 }
 
-/* EMPTY CART */
+
 
 .shoply-checkout-empty {
   padding: 35px 20px;
@@ -14284,7 +14012,7 @@ body {
   cursor: pointer;
 }
 
-/* TOTALS */
+
 
 .shoply-order-totals {
   width: 100%;
@@ -14355,7 +14083,7 @@ body {
   text-decoration: underline;
 }
 
-/* TABLET */
+
 
 @media (max-width: 1000px) {
   .shoply-checkout-content {
@@ -14367,7 +14095,7 @@ body {
   }
 }
 
-/* MOBILE */
+
 
 @media (max-width: 700px) {
   .shoply-checkout-page {
@@ -14437,7 +14165,7 @@ body {
   }
 }
 
-/* SMALL MOBILE */
+
 
 @media (max-width: 430px) {
   .shoply-checkout-page {
@@ -22863,7 +22591,7 @@ body {
   margin: 0 0 14px;
   color: #172238;
   font-family: var(--font-serif);
-  /* font-size: 12px; */
+  
   line-height: 1.08;
   font-weight: 100;
 }
@@ -35844,11 +35572,11 @@ body {
 }
 
 .subcat-products-back:hover {
-  /* background: transparent !important; */
+  
   
 }
 .subcat-products-back {
-  /* display: inline-flex !important; */
+  
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
@@ -38366,7 +38094,7 @@ body {
   font-size: 10px;
 }
 
-/* Tablet */
+
 
 @media (max-width: 1024px) {
   .jbw-footer-container {
@@ -38387,7 +38115,7 @@ body {
   }
 }
 
-/* Mobile */
+
 
 @media (max-width: 767px) {
   .jbw-footer-container {
@@ -38449,7 +38177,7 @@ body {
   }
 }
 
-/* Small Mobile */
+
 
 @media (max-width: 480px) {
   .jbw-footer-container {
@@ -38689,7 +38417,7 @@ body {
   padding-bottom: 24px;
 }
 
-/* Tablet */
+
 
 @media (max-width: 767px) {
   .jbw-faq-hero {
@@ -38740,7 +38468,7 @@ body {
   }
 }
 
-/* Mobile */
+
 
 @media (max-width: 480px) {
   .jbw-faq-hero {
@@ -38800,4 +38528,71 @@ body {
   .jbw-faq-answer-open p {
     padding-bottom: 20px;
   }
+}
+.product-details-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #fafafa;
+}
+:root {
+  --page-background: #fafafa;
+}
+
+html,
+body,
+#root,
+.app {
+  background: #fafafa !important;
+}
+
+.products-page,
+.cart-page,
+.wishlist-page,
+.checkout-page,
+.profile-page,
+.orders-page,
+.order-details-page,
+.admin-layout,
+.admin-main,
+.admin-page,
+.admin-products-page,
+.admin-subcategories-page,
+.admin-users-page,
+.admin-user-details-page,
+.admin-orders-page,
+.admin-order-details-page,
+.add-product-page,
+.edit-product-page,
+.admin-product-form-page,
+.shop-products-page,
+.shop-cart-page,
+.shop-order-success-page,
+.shop-orders-page,
+.shoply-checkout-page,
+.update-profile-page,
+.ac-page,
+.catalog-page,
+.attributes-page,
+.wish-page,
+.subcategory-page,
+.subcat-products-page,
+.product-details-page,
+.login-page,
+.signup-page {
+  background: #fafafa !important;
+}
+
+.login.login-page {
+  background: #fafafa !important;
+}
+
+.jbw-faq-page {
+  background: #fafafa !important;
+}
+
+.product-details-page,
+.shop-cart-page,
+.shoply-checkout-page,
+.shop-order-success-page {
+  background: #fafafa !important;
 }
