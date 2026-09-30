@@ -28,6 +28,9 @@ import SubcategoryProducts from "./component/SubcategoryProducts";
 
 import Slider from "./component/Slider";
 import NotFound from "./component/NotFound";
+import FeaturedDesigners from "./component/FeatureDesigners";
+import AppShowcase from "./component/AppShowcase";
+import FAQ from "./component/FAQ";
 
 function App() {
   return (
@@ -43,17 +46,25 @@ function App() {
             element={
               <>
                 <Slider />
-                
+                <Hero />
                 <Category />
+                <FeaturedDesigners />
+                <AppShowcase />
               </>
             }
           />
 
           <Route path="products" element={<Products />} />
 
-          <Route path="products/:id" element={<ProductDetails />} />
+          <Route
+            path="products/:id"
+            element={<ProductDetails />}
+          />
 
-          <Route path="categories" element={<Category />} />
+          <Route
+            path="categories"
+            element={<Category />}
+          />
 
           <Route
             path="categories/:categoryId"
@@ -75,11 +86,22 @@ function App() {
 
           <Route path="orders" element={<Orders />} />
 
-          <Route path="orders/:id" element={<OrderDetails />} />
+          <Route
+            path="orders/:id"
+            element={<OrderDetails />}
+          />
 
-          <Route path="order-success" element={<OrderSuccess />} />
+          <Route
+            path="order-success"
+            element={<OrderSuccess />}
+          />
 
-          <Route path="update-profile" element={<UpdateProfile />} />
+          <Route
+            path="update-profile"
+            element={<UpdateProfile />}
+          />
+
+          <Route path="faq" element={<FAQ />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>

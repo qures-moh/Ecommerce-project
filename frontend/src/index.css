@@ -4936,3 +4936,22 @@ small {
     font-size: 12px !important;
   }
 }
+.shoply-footer-section a {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.2s ease;
+}
+
+.shoply-footer-section a:hover {
+  color: #ad535d;
+}
+
+.shoply-footer-brand a {
+  display: inline-block;
+}
+
+.shoply-footer-brand a:hover {
+  opacity: 0.9;
+}

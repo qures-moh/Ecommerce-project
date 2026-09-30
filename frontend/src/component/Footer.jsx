@@ -1,54 +1,91 @@
-import {
-  MapPin,
-  Phone,
-} from "lucide-react";
+import { Link } from "react-router-dom";
+
+
 
 export default function Footer() {
   return (
-    <footer className="shoply-footer">
-      <div className="shoply-footer-container">
+    <footer className="jbw-footer">
+      <div className="jbw-footer-container">
+        <div className="jbw-footer-main">
 
-        <div className="shoply-footer-brand">
-          <div className="shoply-footer-logo">
-            <img
-              src="/Just-book.png"
-              alt="Just Book It"
-              className="shoply-footer-logo-image"
-            />
+          <div className="jbw-footer-brand">
+            <Link to="/" className="jbw-footer-logo-link">
+              <img
+                src="/Just-book.png"
+                alt="Just Book It"
+                className="jbw-footer-logo"
+              />
+            </Link>
+
+            <p className="jbw-footer-description">
+              India's premier destination for designer
+              <br />
+              dresses and jewellery rentals. Look
+              <br />
+              extraordinary for any occasion.
+            </p>
           </div>
 
-          <p>
-            Your simple online shopping destination.
-          </p>
-        </div>
+          <div className="jbw-footer-column">
+            <h3>QUICK LINKS</h3>
 
-        <div className="shoply-footer-section">
-          <h3>Quick Links</h3>
-
-          <p>Home</p>
-          <p>Products</p>
-          <p>Cart</p>
-          <p>Wishlist</p>
-        </div>
-
-        <div className="shoply-footer-section">
-          <h3>Contact</h3>
-
-          <div className="shoply-footer-contact">
-            <MapPin size={18} />
-            <span>Ujjain, Madhya Pradesh</span>
+            <Link to="/categories">Browse Categories</Link>
+            <Link to="/faq">FAQs</Link>
+            <Link to="/orders">My Bookings</Link>
+            <Link to="/profile">Contact Us</Link>
+            <Link to="/terms">Terms & Conditions</Link>
+            <Link to="/privacy">Privacy Policy</Link>
           </div>
 
-          <div className="shoply-footer-contact">
-            <Phone size={18} />
-            <span>9179595991</span>
+          <div className="jbw-footer-column">
+            <h3>SERVICES</h3>
+
+            <Link to="/categories">Fashion Designer</Link>
+            <Link to="/categories">Rented Dress</Link>
+            <Link to="/categories">Rented Jewellery</Link>
           </div>
+
+          <div className="jbw-footer-column jbw-footer-connect">
+            <h3>CONNECT</h3>
+
+            <div className="jbw-footer-socials">
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="jbw-social-instagram"
+              >
+              
+              </a>
+
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="jbw-social-facebook"
+              >
+                f
+              </a>
+
+              <a
+                href="#"
+                aria-label="YouTube"
+                className="jbw-social-youtube"
+              >
+                ▶
+              </a>
+            </div>
+          </div>
+
         </div>
 
-      </div>
+        <div className="jbw-footer-bottom">
+          <p>© 2026 Just Book It. All rights reserved.</p>
 
-      <div className="shoply-footer-bottom">
-        <p>© 2026 Shoply. All rights reserved.</p>
+          <div className="jbw-footer-bottom-links">
+            <Link to="/terms">Terms</Link>
+            <span>•</span>
+            <Link to="/privacy">Privacy</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
