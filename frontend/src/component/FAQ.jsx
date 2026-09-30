@@ -8,21 +8,13 @@ const faqData = [
     answer:
       "Just Book It is a fashion booking platform where you can discover and book fashion designers, rented dresses, and rented jewellery from available vendors.",
   },
-  {
-    question: "How can I book a fashion designer?",
-    answer:
-      "Browse the available fashion designers, open the designer or service you are interested in, select the required details, and continue with the booking process.",
-  },
+ 
   {
     question: "Can I rent dresses through Just Book It?",
     answer:
       "Yes. You can browse available rented dresses, check their details and proceed with a booking based on the availability provided by the vendor.",
   },
-  {
-    question: "Can I rent jewellery?",
-    answer:
-      "Yes. Just Book It also provides rented jewellery listings where you can explore available jewellery and make a booking.",
-  },
+
   {
     question: "How do I search for a product?",
     answer:
@@ -66,22 +58,7 @@ export default function FAQ() {
 
   return (
     <main className="jbw-faq-page">
-      <section className="jbw-faq-hero">
-        <span className="jbw-faq-eyebrow">
-          HELP & SUPPORT
-        </span>
-
-        <h1 className="jbw-faq-title">
-          Frequently Asked
-          <br />
-          <span>Questions.</span>
-        </h1>
-
-        <p className="jbw-faq-intro">
-          Find answers to common questions about bookings,
-          rentals, products and your Just Book It account.
-        </p>
-      </section>
+      
 
       <section className="jbw-faq-section">
         <div className="jbw-faq-container">

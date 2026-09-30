@@ -45,7 +45,7 @@ function App() {
             index
             element={
               <>
-                <Slider />
+                {/* <Slider /> */}
                 <Hero />
                 <Category />
                 <FeaturedDesigners />
