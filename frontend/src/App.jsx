@@ -43,7 +43,7 @@ function App() {
             element={
               <>
                 <Slider />
-                <Hero />
+                
                 <Category />
               </>
             }
@@ -97,6 +97,7 @@ function App() {
         theme="light"
         toastClassName="custom-toast"
         bodyClassName="custom-toast-body"
+        className="app-toast-container"
       />
     </BrowserRouter>
   );

@@ -27,13 +27,17 @@ const getImageUrl = (image) => {
 };
 
 const getVariant = (product) => {
-  if (!Array.isArray(product?.variants) || product.variants.length === 0) {
+  if (
+    !Array.isArray(product?.variants) ||
+    product.variants.length === 0
+  ) {
     return null;
   }
 
   return (
-    product.variants.find((variant) => variant.isActive !== false) ||
-    product.variants[0]
+    product.variants.find(
+      (variant) => variant.isActive !== false
+    ) || product.variants[0]
   );
 };
 
@@ -46,7 +50,10 @@ const getFinalPrice = (variant) => {
   const discountValue = Number(variant.discountValue) || 0;
 
   if (variant.discountType === "percentage") {
-    return Math.max(0, price - (price * discountValue) / 100);
+    return Math.max(
+      0,
+      price - (price * discountValue) / 100
+    );
   }
 
   if (variant.discountType === "flat") {
@@ -116,14 +123,9 @@ const Products = () => {
 
   const cart = useSelector((state) => state.cart || []);
 
-  const isAuthenticated = useSelector((state) => {
-    return Boolean(
-      state.auth?.isAuthenticated ||
-        state.auth?.user ||
-        state.user?.isAuthenticated ||
-        state.user?.user
-    );
-  });
+  const user = useSelector((state) => state.user);
+
+  const isAuthenticated = Boolean(user);
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -189,19 +191,14 @@ const Products = () => {
     fetchProducts();
   }, [category]);
 
+  const handleLoginRequired = () => {
+    toast.warning("Please login first.");
+    navigate("/login");
+  };
+
   const handleAddToCart = (product) => {
     if (!isAuthenticated) {
-      toast.warning(
-        "You are not logged in. Please login first.",
-        {
-          autoClose: 1500,
-        }
-      );
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
-
+      handleLoginRequired();
       return;
     }
 
@@ -269,17 +266,7 @@ const Products = () => {
     event.stopPropagation();
 
     if (!isAuthenticated) {
-      toast.warning(
-        "You are not logged in. Please login first.",
-        {
-          autoClose: 1500,
-        }
-      );
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 1200);
-
+      handleLoginRequired();
       return;
     }
 

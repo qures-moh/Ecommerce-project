@@ -177,14 +177,9 @@ export default function ProductDetails() {
   const cart = useSelector((state) => state.cart || []);
   const wishlist = useSelector((state) => state.wishlist || []);
 
-  const isAuthenticated = useSelector((state) => {
-    return Boolean(
-      state.auth?.isAuthenticated ||
-      state.auth?.user ||
-      state.user?.isAuthenticated ||
-      state.user?.user
-    );
-  });
+  const user = useSelector((state) => state.user);
+
+  const isAuthenticated = Boolean(user);
 
   const [product, setProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -309,16 +304,9 @@ export default function ProductDetails() {
     );
 
   const handleLoginRequired = () => {
-    toast.warning(
-      "You are not logged in. Please login first.",
-      {
-        autoClose: 1500,
-      }
-    );
+    toast.warning("Please login first.");
 
-    setTimeout(() => {
-      navigate("/login");
-    }, 1200);
+    navigate("/login");
   };
 
   const handleAttributeChange = (
@@ -407,7 +395,7 @@ export default function ProductDetails() {
 
       price: finalPrice,
 
-      originalPrice: originalPrice,
+      originalPrice,
 
       discountType: selectedVariant.discountType,
 
