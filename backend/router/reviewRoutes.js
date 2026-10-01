@@ -9,7 +9,7 @@ const {
 const {
   getAllReviews,
   deleteAdminReview,
-} = require("../controller/AdminReviewController");
+} = require("../controller/adminReviewController");
 
 const authMiddleware = require("../middleware/auth");
 const adminMiddleware = require("../middleware/admin");
