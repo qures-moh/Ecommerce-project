@@ -27,6 +27,7 @@ import AddCategory from "./components/pages/AddCategory";
 import AdminSubcategories from "./components/pages/AdminSubcategories";
 import AdminAttributes from "./components/pages/AdminAttributes";
 import AdminAttributeValues from "./components/pages/AdminAttributeValues";
+import AdminReviews from "./components/pages/AdminReviews";
 
 function ProductEditRedirect() {
   const { id } = useParams();
@@ -76,6 +77,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+
         <Route
           path="/"
           element={
@@ -173,6 +175,11 @@ function App() {
           <Route
             path="attribute-values"
             element={<AdminAttributeValues />}
+          />
+
+          <Route
+            path="reviews"
+            element={<AdminReviews />}
           />
         </Route>
 
@@ -295,6 +302,7 @@ function App() {
             />
           }
         />
+
       </Routes>
 
       <ToastContainer />

@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import api from "../utils/axios";
 import { addToCart } from "../utils/cartSlice";
 import { toggleWishlist } from "../utils/wishlist";
+import ProductReviews from "./ProductReviews";
 
 const getImageUrl = (image) => {
   if (!image || typeof image !== "string") {
@@ -878,6 +879,8 @@ export default function ProductDetails() {
             </div>
           </div>
         </div>
+
+        <ProductReviews productId={product._id} />
       </div>
     </section>
   );

@@ -14,7 +14,9 @@ import {
   X,
   LogOut,
   Search,
+  MessageSquare,
 } from "lucide-react";
+
 
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -35,54 +37,58 @@ const AdminLayout = () => {
   const user = useSelector((state) => state.user);
 
   const isLoggedIn = !!user;
-
-  const menuItems = [
-    {
-      name: "Dashboard",
-      path: "/admin/dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      name: "Add Product",
-      path: "/admin/products/add",
-      icon: Plus,
-    },
-    {
-      name: "Products",
-      path: "/admin/products",
-      icon: Package,
-    },
-    {
-      name: "Orders",
-      path: "/admin/orders",
-      icon: ShoppingCart,
-    },
-    {
-      name: "Users",
-      path: "/admin/users",
-      icon: Users,
-    },
-    {
-      name: "Categories",
-      path: "/admin/categories",
-      icon: Tag,
-    },
-    {
-      name: "Subcategories",
-      path: "/admin/subcategories",
-      icon: Tags,
-    },
-    {
-      name: "Attributes",
-      path: "/admin/attributes",
-      icon: SlidersHorizontal,
-    },
-    {
-      name: "Attribute Values",
-      path: "/admin/attribute-values",
-      icon: List,
-    },
-  ];
+const menuItems = [
+  {
+    name: "Dashboard",
+    path: "/admin/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    name: "Add Product",
+    path: "/admin/products/add",
+    icon: Plus,
+  },
+  {
+    name: "Products",
+    path: "/admin/products",
+    icon: Package,
+  },
+  {
+    name: "Orders",
+    path: "/admin/orders",
+    icon: ShoppingCart,
+  },
+  {
+    name: "Users",
+    path: "/admin/users",
+    icon: Users,
+  },
+  {
+    name: "Categories",
+    path: "/admin/categories",
+    icon: Tag,
+  },
+  {
+    name: "Subcategories",
+    path: "/admin/subcategories",
+    icon: Tags,
+  },
+  {
+    name: "Attributes",
+    path: "/admin/attributes",
+    icon: SlidersHorizontal,
+  },
+  {
+    name: "Attribute Values",
+    path: "/admin/attribute-values",
+    icon: List,
+  },
+  {
+    name: "Reviews",
+    path: "/admin/reviews",
+    icon: MessageSquare,
+  },
+];
 
   const filteredMenuItems = menuItems.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase().trim())
