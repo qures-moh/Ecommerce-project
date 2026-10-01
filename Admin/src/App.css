@@ -35979,3 +35979,304 @@ body {
     width: 100%;
   }
 }
+/* FINAL CONSISTENT ADMIN STYLES */
+
+.admin-layout,
+.admin-main,
+.admin-content {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+.admin-layout {
+  background: #f7f8fc;
+}
+
+.admin-content {
+  background: #f7f8fc;
+}
+
+.admin-reviews-page,
+.attributes-page,
+.attribute-values-page {
+  box-sizing: border-box;
+}
+
+.dashboard-header h1,
+.admin-reviews-header h1,
+.attributes-header h1,
+.attribute-values-header h1,
+.attribute-page-header h1 {
+  color: #111750;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 29px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.dashboard-header p,
+.admin-reviews-header p,
+.attributes-header p,
+.attribute-values-header p,
+.attribute-page-header p {
+  color: #777c9c;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.attribute-values-page {
+  width: 100%;
+  max-width: 1600px;
+  min-height: calc(100vh - 72px);
+  margin: 0 auto;
+  padding: 30px;
+  background: #f7f8fc;
+}
+
+.attribute-values-header {
+  margin-bottom: 25px;
+}
+
+.attribute-values-header h1 {
+  margin: 0;
+}
+
+.attribute-values-header p {
+  margin: 7px 0 0;
+}
+
+.attribute-values-add-button {
+  min-height: 46px;
+  padding: 0 19px;
+  border-radius: 10px;
+  background: #6246ea;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.attribute-values-add-button:hover {
+  background: #542fe0;
+}
+
+.attribute-values-selection-card,
+.attribute-values-toolbar,
+.attribute-values-list,
+.attribute-values-container,
+.attribute-values-table-wrapper {
+  border-color: #e4e7ef;
+  border-radius: 15px;
+  background: #ffffff;
+}
+
+.attribute-values-selection-card {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.attribute-values-selection-content h3 {
+  color: #1d243d;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.attribute-values-selection-content p {
+  color: #777c9c;
+  font-size: 12px;
+}
+
+.attribute-values-select-wrapper select,
+.attribute-values-search input,
+.attribute-values-toolbar input {
+  color: #30384f;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.attribute-values-search,
+.attribute-values-select-wrapper select {
+  border-color: #dce2ee;
+  border-radius: 10px;
+}
+
+.attribute-values-search:focus-within,
+.attribute-values-select-wrapper select:focus {
+  border-color: #6246ea;
+  box-shadow: 0 0 0 3px rgba(98, 70, 234, 0.08);
+}
+
+.attribute-values-section-title,
+.attribute-values-list-header h2,
+.attribute-values-list h2 {
+  color: #111750;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.attribute-values-list p,
+.attribute-values-list-header p {
+  color: #777c9c;
+  font-size: 12px;
+}
+
+.attribute-value-row,
+.attribute-values-row {
+  border-color: #edf0f5;
+  background: #ffffff;
+}
+
+.attribute-value-row:hover,
+.attribute-values-row:hover {
+  background: #fafaff;
+}
+
+.attribute-value-name,
+.attribute-values-name {
+  color: #1d243d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.attribute-value-meta,
+.attribute-values-meta {
+  color: #9299aa;
+  font-size: 12px;
+}
+
+.attribute-value-edit,
+.attribute-values-edit {
+  color: #6246ea;
+  background: #f0ebff;
+}
+
+.attribute-value-delete,
+.attribute-values-delete {
+  color: #e5484d;
+  background: #fff0f1;
+}
+
+.attributes-page {
+  min-height: calc(100vh - 72px);
+  padding: 30px;
+  background: #f7f8fc;
+}
+
+.attributes-header {
+  margin-bottom: 25px;
+}
+
+.attributes-header h1 {
+  font-size: 29px;
+}
+
+.attributes-header p {
+  font-size: 14px;
+}
+
+.attributes-add-button {
+  min-height: 46px;
+  padding: 0 19px;
+  border-radius: 10px;
+  background: #6246ea;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.attributes-add-button:hover {
+  background: #542fe0;
+}
+
+.attributes-toolbar {
+  padding: 18px 20px;
+  border: 1px solid #e4e7ef;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.attributes-search {
+  border-color: #dce2ee;
+  border-radius: 10px;
+}
+
+.attributes-search:focus-within {
+  border-color: #6246ea;
+  box-shadow: 0 0 0 3px rgba(98, 70, 234, 0.08);
+}
+
+.attributes-search input {
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .attribute-values-page,
+  .attributes-page {
+    padding: 18px;
+  }
+
+  .dashboard-header h1,
+  .admin-reviews-header h1,
+  .attributes-header h1,
+  .attribute-values-header h1,
+  .attribute-page-header h1 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .attribute-values-page,
+  .attributes-page {
+    padding: 14px;
+  }
+
+  .dashboard-header h1,
+  .admin-reviews-header h1,
+  .attributes-header h1,
+  .attribute-values-header h1,
+  .attribute-page-header h1 {
+    font-size: 24px;
+  }
+
+  .dashboard-header p,
+  .admin-reviews-header p,
+  .attributes-header p,
+  .attribute-values-header p,
+  .attribute-page-header p {
+    font-size: 13px;
+  }
+}
+.admin-logo-section {
+  height: 72px;
+  min-height: 72px;
+  box-sizing: border-box;
+}
+
+.admin-topbar {
+  height: 72px;
+  min-height: 72px;
+  box-sizing: border-box;
+}
+
+.admin-logo-image {
+  width: 68px;
+  height: auto;
+}
+
+.admin-content {
+  min-height: calc(100vh - 72px);
+}
+
+@media (max-width: 768px) {
+  .admin-logo-section {
+    height: 65px;
+    min-height: 65px;
+  }
+
+  .admin-topbar {
+    height: 65px;
+    min-height: 65px;
+  }
+
+  .admin-content {
+    min-height: calc(100vh - 65px);
+  }
+}
