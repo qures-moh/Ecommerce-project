@@ -88,6 +88,7 @@ app.use("/api/subcategories", subcategoryRouter);
 app.use("/api/attributes", attributeRouter);
 
 app.use("/api/reviews", reviewRoutes);
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
