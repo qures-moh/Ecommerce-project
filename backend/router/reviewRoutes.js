@@ -16,14 +16,14 @@ const adminMiddleware = require("../middleware/admin");
 
 const router = express.Router();
 
+router.get("/admin/all", adminMiddleware, getAllReviews);
+
+router.delete("/admin/:id", adminMiddleware, deleteAdminReview);
+
 router.get("/:productId", getProductReviews);
 
 router.post("/:productId", authMiddleware, addReview);
 
 router.delete("/:id", authMiddleware, deleteReview);
-
-router.get("/admin/all", adminMiddleware, getAllReviews);
-
-router.delete("/admin/:id", adminMiddleware, deleteAdminReview);
 
 module.exports = router;
