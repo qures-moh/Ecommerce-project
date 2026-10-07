@@ -12,7 +12,7 @@ const categoryRoutes = require("./router/categoryRoutes");
 const subcategoryRouter = require("./router/subcategoryRoutes");
 const attributeRouter = require("./router/attributeRoutes");
 const rateLimit = require("express-rate-limit");
-
+const tagRoutes = require("./router/tagRoutes");
 const reviewRoutes = require("./router/reviewRoutes");
 
 const PORT = 3000;
@@ -88,6 +88,7 @@ app.use("/api/subcategories", subcategoryRouter);
 app.use("/api/attributes", attributeRouter);
 
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/tags", tagRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

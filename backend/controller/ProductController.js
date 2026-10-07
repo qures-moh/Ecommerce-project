@@ -8,7 +8,9 @@ const path = require("path");
 const removeFile = (filePath) => {
   if (!filePath) return;
 
-  const cleanPath = filePath.replace(/\\/g, "/").replace(/^\/+/, "");
+  const cleanPath = filePath
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "");
 
   const fullPath = path.join(__dirname, "..", cleanPath);
 
@@ -37,6 +39,34 @@ const parseVariants = (variants) => {
   } catch (error) {
     return null;
   }
+};
+
+const parseTags = (tags) => {
+  if (!tags) {
+    return [];
+  }
+
+  let parsedTags = tags;
+
+  if (typeof tags === "string") {
+    try {
+      parsedTags = JSON.parse(tags);
+    } catch (error) {
+      parsedTags = tags.split(",");
+    }
+  }
+
+  if (!Array.isArray(parsedTags)) {
+    return [];
+  }
+
+  return [
+    ...new Set(
+      parsedTags
+        .map((tag) => String(tag).trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
 };
 
 const validateVariants = async (variants) => {
@@ -206,7 +236,12 @@ const validateVariants = async (variants) => {
 
 const addProduct = async (req, res) => {
   try {
-    const { name, category, subcategory, description } = req.body;
+    const {
+      name,
+      category,
+      subcategory,
+      description,
+    } = req.body;
 
     if (!name || !category || !subcategory || !description) {
       return res.status(400).json({
@@ -247,6 +282,8 @@ const addProduct = async (req, res) => {
       });
     }
 
+    const tags = parseTags(req.body.tags);
+
     const validation = await validateVariants(variants);
 
     if (!validation.valid) {
@@ -285,6 +322,7 @@ const addProduct = async (req, res) => {
       name: name.trim(),
       category,
       subcategory,
+      tags,
       description: description.trim(),
       variants: formattedVariants,
     });
@@ -307,66 +345,6 @@ const addProduct = async (req, res) => {
   }
 };
 
-// const getProducts = async (req, res) => {
-//   try {
-//     const { category, subcategory, search, page = 1, limit = 10 } = req.query;
-
-//     const query = {
-//       isActive: true,
-//     };
-
-//     if (category) {
-//       query.category = category;
-//     }
-
-//     if (subcategory) {
-//       query.subcategory = subcategory;
-//     }
-
-//     if (search) {
-//       query.name = {
-//         $regex: search,
-//         $options: "i",
-//       };
-//     }
-
-//     const pageNumber = Math.max(Number(page) || 1, 1);
-
-//     const limitNumber = Math.max(Number(limit) || 10, 1);
-
-//     const skip = (pageNumber - 1) * limitNumber;
-
-//     const [products, totalProducts] = await Promise.all([
-//       Product.find(query)
-//         .populate("category", "name")
-//         .populate("subcategory", "name")
-//         .sort({ createdAt: -1 })
-//         .skip(skip)
-//         .limit(limitNumber)
-//         .lean(),
-
-//       Product.countDocuments(query),
-//     ]);
-
-//     return res.status(200).json({
-//       message: "Products fetched successfully",
-//       products,
-//       pagination: {
-//         currentPage: pageNumber,
-//         totalPages: Math.ceil(totalProducts / limitNumber),
-//         totalProducts,
-//         limit: limitNumber,
-//       },
-//     });
-//   } catch (error) {
-//     console.error("GET PRODUCTS ERROR:", error);
-
-//     return res.status(500).json({
-//       message: "Failed to fetch products",
-//       error: error.message,
-//     });
-//   }
-// };
 const getProducts = async (req, res) => {
   try {
     const {
@@ -401,9 +379,7 @@ const getProducts = async (req, res) => {
     }
 
     const pageNumber = Math.max(Number(page) || 1, 1);
-
     const limitNumber = Math.max(Number(limit) || 10, 1);
-
     const skip = (pageNumber - 1) * limitNumber;
 
     const [products, totalProducts] = await Promise.all([
@@ -429,7 +405,6 @@ const getProducts = async (req, res) => {
 
       if (firstVariant) {
         const price = Number(firstVariant.price || 0);
-
         const discountValue = Number(firstVariant.discountValue || 0);
 
         if (firstVariant.discountType === "percentage") {
@@ -443,24 +418,19 @@ const getProducts = async (req, res) => {
 
       return {
         ...product,
-
         displayPrice: Math.max(finalPrice, 0),
-
-        originalPrice: firstVariant ? Number(firstVariant.price || 0) : 0,
-
+        originalPrice: firstVariant
+          ? Number(firstVariant.price || 0)
+          : 0,
         discountType: firstVariant?.discountType || null,
-
         discountValue: Number(firstVariant?.discountValue || 0),
-
         displayImages: firstVariant?.images || [],
       };
     });
 
     return res.status(200).json({
       message: "Products fetched successfully",
-
       products: formattedProducts,
-
       pagination: {
         currentPage: pageNumber,
         totalPages: Math.ceil(totalProducts / limitNumber),
@@ -518,7 +488,12 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    const { name, category, subcategory, description } = req.body;
+    const {
+      name,
+      category,
+      subcategory,
+      description,
+    } = req.body;
 
     if (!name || !category || !subcategory || !description) {
       return res.status(400).json({
@@ -559,6 +534,8 @@ const updateProduct = async (req, res) => {
       });
     }
 
+    const tags = parseTags(req.body.tags);
+
     const validation = await validateVariants(variants);
 
     if (!validation.valid) {
@@ -568,7 +545,6 @@ const updateProduct = async (req, res) => {
     }
 
     const files = req.files || [];
-
     const oldVariants = product.variants || [];
 
     const formattedVariants = variants.map((variant, index) => {
@@ -588,7 +564,6 @@ const updateProduct = async (req, res) => {
 
       if (newImages.length > 0) {
         images.forEach(removeFile);
-
         images = newImages;
       }
 
@@ -600,19 +575,12 @@ const updateProduct = async (req, res) => {
 
       return {
         _id: oldVariant ? oldVariant._id : undefined,
-
         attributes,
-
         price: Number(variant.price),
-
         discountType: variant.discountType || null,
-
         discountValue: Number(variant.discountValue) || 0,
-
         stock: Number(variant.stock) || 0,
-
         images,
-
         isActive: variant.isActive !== false,
       };
     });
@@ -630,13 +598,10 @@ const updateProduct = async (req, res) => {
     });
 
     product.name = name.trim();
-
     product.category = category;
-
     product.subcategory = subcategory;
-
+    product.tags = tags;
     product.description = description.trim();
-
     product.variants = formattedVariants;
 
     await product.save();
@@ -714,6 +679,139 @@ const deleteAllProducts = async (req, res) => {
     });
   }
 };
+const getRelatedProducts = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id)
+      .select("tags")
+      .lean();
+
+    if (!product) {
+      return res.status(404).json({
+        message: "Product not found",
+      });
+    }
+
+    if (!product.tags || product.tags.length === 0) {
+      return res.status(200).json({
+        message: "Related products fetched successfully",
+        products: [],
+      });
+    }
+
+    const relatedProducts = await Product.aggregate([
+      {
+        $match: {
+          _id: { $ne: product._id },
+          isActive: true,
+          tags: {
+            $in: product.tags,
+          },
+        },
+      },
+      {
+        $addFields: {
+          matchingTags: {
+            $size: {
+              $setIntersection: ["$tags", product.tags],
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          matchingTags: -1,
+          createdAt: -1,
+        },
+      },
+      {
+        $limit: 6,
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "category",
+        },
+      },
+      {
+        $lookup: {
+          from: "subcategories",
+          localField: "subcategory",
+          foreignField: "_id",
+          as: "subcategory",
+        },
+      },
+      {
+        $unwind: {
+          path: "$category",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$subcategory",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
+
+    const formattedProducts = relatedProducts.map((product) => {
+      const activeVariants = Array.isArray(product.variants)
+        ? product.variants.filter(
+            (variant) => variant.isActive !== false
+          )
+        : [];
+
+      const firstVariant = activeVariants[0] || null;
+
+      let displayPrice = 0;
+
+      if (firstVariant) {
+        const price = Number(firstVariant.price || 0);
+        const discountValue = Number(
+          firstVariant.discountValue || 0
+        );
+
+        if (firstVariant.discountType === "percentage") {
+          displayPrice =
+            price - (price * discountValue) / 100;
+        } else if (firstVariant.discountType === "flat") {
+          displayPrice = price - discountValue;
+        } else {
+          displayPrice = price;
+        }
+      }
+
+      return {
+        ...product,
+        displayPrice: Math.max(displayPrice, 0),
+        originalPrice: firstVariant
+          ? Number(firstVariant.price || 0)
+          : 0,
+        discountType: firstVariant?.discountType || null,
+        discountValue: Number(
+          firstVariant?.discountValue || 0
+        ),
+        displayImages: firstVariant?.images || [],
+      };
+    });
+
+    return res.status(200).json({
+      message: "Related products fetched successfully",
+      products: formattedProducts,
+    });
+  } catch (error) {
+    console.error("GET RELATED PRODUCTS ERROR:", error);
+
+    return res.status(500).json({
+      message: "Failed to fetch related products",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   addProduct,
@@ -722,4 +820,5 @@ module.exports = {
   updateProduct,
   deleteProduct,
   deleteAllProducts,
+  getRelatedProducts
 };

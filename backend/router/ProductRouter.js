@@ -7,6 +7,7 @@ const {
   deleteProduct,
   updateProduct,
   getProductById,
+  getRelatedProducts
 } = require("../controller/ProductController");
 
 const upload = require("../middleware/multer");
@@ -14,40 +15,18 @@ const adminMiddleware = require("../middleware/admin");
 
 const productRouter = express.Router();
 
-productRouter.post(
-  "/products/add",
-  adminMiddleware,
-  upload.any(),
-  addProduct
-);
+productRouter.post("/products/add", adminMiddleware, upload.any(), addProduct);
 
-productRouter.get(
-  "/products",
-  getProducts
-);
+productRouter.get("/products", getProducts);
 
-productRouter.get(
-  "/products/:id",
-  getProductById
-);
+productRouter.get("/products/:id/related", getRelatedProducts);
 
-productRouter.delete(
-  "/deleteProduct",
-  adminMiddleware,
-  deleteAllProducts
-);
+productRouter.get("/products/:id", getProductById);
 
-productRouter.put(
-  "/:id",
-  adminMiddleware,
-  upload.any(),
-  updateProduct
-);
+productRouter.delete("/deleteProduct", adminMiddleware, deleteAllProducts);
 
-productRouter.delete(
-  "/:id",
-  adminMiddleware,
-  deleteProduct
-);
+productRouter.put("/:id", adminMiddleware, upload.any(), updateProduct);
+
+productRouter.delete("/:id", adminMiddleware, deleteProduct);
 
 module.exports = productRouter;

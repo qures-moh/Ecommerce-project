@@ -25,6 +25,7 @@ import AdminUserDetails from "./components/pages/AdminUserDetails";
 import AdminCategories from "./components/pages/AdminCategories";
 import AddCategory from "./components/pages/AddCategory";
 import AdminSubcategories from "./components/pages/AdminSubcategories";
+import AdminTags from "./components/pages/AdminTags";
 import AdminAttributes from "./components/pages/AdminAttributes";
 import AdminAttributeValues from "./components/pages/AdminAttributeValues";
 import AdminReviews from "./components/pages/AdminReviews";
@@ -77,7 +78,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
         <Route
           path="/"
           element={
@@ -165,6 +165,11 @@ function App() {
           <Route
             path="subcategories"
             element={<AdminSubcategories />}
+          />
+
+          <Route
+            path="tags"
+            element={<AdminTags />}
           />
 
           <Route
@@ -284,6 +289,16 @@ function App() {
         />
 
         <Route
+          path="/tags"
+          element={
+            <Navigate
+              to="/admin/tags"
+              replace
+            />
+          }
+        />
+
+        <Route
           path="/attributes"
           element={
             <Navigate
@@ -302,7 +317,6 @@ function App() {
             />
           }
         />
-
       </Routes>
 
       <ToastContainer />

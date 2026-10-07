@@ -1,4 +1,3 @@
-
 const Subcategory = require("../model/Subcategory");
 const Category = require("../model/Category");
 
@@ -42,6 +41,7 @@ const addSubcategory = async (req, res) => {
       category,
       description: description || "",
       image: req.file.path,
+      isActive: true,
     });
 
     res.status(201).json({
@@ -130,7 +130,7 @@ const getSubcategoryById = async (req, res) => {
 const updateSubcategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, description, isActive } = req.body;
+    const { name, category, description } = req.body;
 
     const subcategory = await Subcategory.findById(id);
 
@@ -176,10 +176,6 @@ const updateSubcategory = async (req, res) => {
       subcategory.description = description;
     }
 
-    if (isActive !== undefined) {
-      subcategory.isActive = isActive;
-    }
-
     if (req.file) {
       subcategory.image = req.file.path;
     }
@@ -198,6 +194,36 @@ const updateSubcategory = async (req, res) => {
   }
 };
 
+const toggleSubcategoryStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subcategory = await Subcategory.findById(id);
+
+    if (!subcategory) {
+      return res.status(404).json({
+        message: "Subcategory not found",
+      });
+    }
+
+    subcategory.isActive = !subcategory.isActive;
+
+    await subcategory.save();
+
+    res.status(200).json({
+      message: subcategory.isActive
+        ? "Subcategory activated successfully"
+        : "Subcategory deactivated successfully",
+      subcategory,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to update subcategory status",
+      error: error.message,
+    });
+  }
+};
+
 const deleteSubcategory = async (req, res) => {
   try {
     const { id } = req.params;
@@ -210,12 +236,10 @@ const deleteSubcategory = async (req, res) => {
       });
     }
 
-    subcategory.isActive = false;
-
-    await subcategory.save();
+    await Subcategory.findByIdAndDelete(id);
 
     res.status(200).json({
-      message: "Subcategory deactivated successfully",
+      message: "Subcategory deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
@@ -231,5 +255,6 @@ module.exports = {
   getSubcategoriesByCategory,
   getSubcategoryById,
   updateSubcategory,
+  toggleSubcategoryStatus,
   deleteSubcategory,
 };

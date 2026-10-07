@@ -7,6 +7,33 @@ import {
 } from "lucide-react";
 import api from "../utils/axios";
 
+// const getImageUrl = (image) => {
+//   if (!image || typeof image !== "string") {
+//     return "";
+//   }
+
+//   if (
+//     image.startsWith("http://") ||
+//     image.startsWith("https://")
+//   ) {
+//     return image;
+//   }
+
+//   const baseURL =
+//     api.defaults.baseURL ||
+//     "http://localhost:3000/api";
+
+//   const cleanBaseURL = baseURL.replace(
+//     /\/api\/?$/,
+//     ""
+//   );
+
+//   const cleanImage = image
+//     .replace(/\\/g, "/")
+//     .replace(/^\/+/, "");
+
+//   return `${cleanBaseURL}/${cleanImage}`;
+// };
 const getImageUrl = (image) => {
   if (!image || typeof image !== "string") {
     return "";
@@ -14,25 +41,25 @@ const getImageUrl = (image) => {
 
   if (
     image.startsWith("http://") ||
-    image.startsWith("https://")
+    image.startsWith("https://") ||
+    image.startsWith("data:")
   ) {
     return image;
   }
 
-  const baseURL =
-    api.defaults.baseURL ||
-    "http://localhost:3000/api";
-
-  const cleanBaseURL = baseURL.replace(
-    /\/api\/?$/,
-    ""
-  );
+  const baseUrl =
+    api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
+    "http://localhost:3000";
 
   const cleanImage = image
     .replace(/\\/g, "/")
     .replace(/^\/+/, "");
 
-  return `${cleanBaseURL}/${cleanImage}`;
+  if (cleanImage.startsWith("uploads/")) {
+    return `${baseUrl}/${cleanImage}`;
+  }
+
+  return `${baseUrl}/uploads/${cleanImage}`;
 };
 
 export default function SubcategoryPage() {

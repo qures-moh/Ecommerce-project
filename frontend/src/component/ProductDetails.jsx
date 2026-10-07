@@ -1,4 +1,9 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,7 +24,11 @@ const getImageUrl = (image) => {
     return "";
   }
 
-  if (image.startsWith("http://") || image.startsWith("https://")) {
+  if (
+    image.startsWith("http://") ||
+    image.startsWith("https://") ||
+    image.startsWith("data:")
+  ) {
     return image;
   }
 
@@ -27,9 +36,15 @@ const getImageUrl = (image) => {
     api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
     "http://localhost:3000";
 
-  const cleanImage = image.replace(/\\/g, "/").replace(/^\/+/, "");
+  const cleanImage = image
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "");
 
-  return `${baseUrl}/${cleanImage}`;
+  if (cleanImage.startsWith("uploads/")) {
+    return `${baseUrl}/${cleanImage}`;
+  }
+
+  return `${baseUrl}/uploads/${cleanImage}`;
 };
 
 const getVariants = (product) => {
@@ -48,7 +63,9 @@ const getAttributes = (variant) => {
   }
 
   if (variant.attributes instanceof Map) {
-    return Object.fromEntries(variant.attributes.entries());
+    return Object.fromEntries(
+      variant.attributes.entries()
+    );
   }
 
   if (
@@ -61,10 +78,7 @@ const getAttributes = (variant) => {
   return {};
 };
 
-const getAttributeOptions = (
-  variants,
-  selectedAttributes = {}
-) => {
+const getAttributeOptions = (variants) => {
   const groups = {};
 
   variants
@@ -72,35 +86,29 @@ const getAttributeOptions = (
     .forEach((variant) => {
       const attributes = getAttributes(variant);
 
-      Object.entries(attributes).forEach(([key, value]) => {
-        const matchesOtherAttributes = Object.entries(
-          selectedAttributes
-        ).every(([selectedKey, selectedValue]) => {
-          if (selectedKey === key) {
-            return true;
+      Object.entries(attributes).forEach(
+        ([key, value]) => {
+          if (
+            value === undefined ||
+            value === null ||
+            value === ""
+          ) {
+            return;
           }
 
-          return (
-            attributes[selectedKey] !== undefined &&
-            String(attributes[selectedKey]) ===
-              String(selectedValue)
-          );
-        });
+          if (!groups[key]) {
+            groups[key] = [];
+          }
 
-        if (!matchesOtherAttributes) {
-          return;
+          const stringValue = String(value);
+
+          if (
+            !groups[key].includes(stringValue)
+          ) {
+            groups[key].push(stringValue);
+          }
         }
-
-        if (!groups[key]) {
-          groups[key] = [];
-        }
-
-        const stringValue = String(value);
-
-        if (!groups[key].includes(stringValue)) {
-          groups[key].push(stringValue);
-        }
-      });
+      );
     });
 
   return groups;
@@ -108,7 +116,8 @@ const getAttributeOptions = (
 
 const getVariantFinalPrice = (variant) => {
   const price = Number(variant?.price) || 0;
-  const discount = Number(variant?.discountValue) || 0;
+  const discount =
+    Number(variant?.discountValue) || 0;
 
   if (variant?.discountType === "percentage") {
     return Math.max(
@@ -126,13 +135,17 @@ const getVariantFinalPrice = (variant) => {
 
 const getDiscountPercentage = (variant) => {
   const price = Number(variant?.price) || 0;
-  const discount = Number(variant?.discountValue) || 0;
+  const discount =
+    Number(variant?.discountValue) || 0;
 
   if (variant?.discountType === "percentage") {
     return Math.round(discount);
   }
 
-  if (variant?.discountType === "flat" && price > 0) {
+  if (
+    variant?.discountType === "flat" &&
+    price > 0
+  ) {
     return Math.round((discount / price) * 100);
   }
 
@@ -145,7 +158,9 @@ const getVariantImages = (variant) => {
   }
 
   return variant.images.filter(
-    (image) => typeof image === "string" && image.length > 0
+    (image) =>
+      typeof image === "string" &&
+      image.trim().length > 0
   );
 };
 
@@ -170,26 +185,156 @@ const findMatchingVariant = (
   });
 };
 
+const findVariantAfterAttributeChange = (
+  variants,
+  selectedAttributes,
+  attributeName
+) => {
+  const inStockVariants = variants.filter(
+    (variant) => Number(variant?.stock) > 0
+  );
+
+  const exactVariant = findMatchingVariant(
+    inStockVariants,
+    selectedAttributes
+  );
+
+  if (exactVariant) {
+    return exactVariant;
+  }
+
+  const changedValue =
+    selectedAttributes[attributeName];
+
+  const matchingChangedAttribute =
+    inStockVariants.find((variant) => {
+      const attributes = getAttributes(variant);
+
+      return (
+        attributes[attributeName] !== undefined &&
+        String(attributes[attributeName]) ===
+          String(changedValue)
+      );
+    });
+
+  return matchingChangedAttribute || null;
+};
+
+const getCategoryId = (category) => {
+  if (!category) {
+    return "";
+  }
+
+  if (typeof category === "object") {
+    return category._id || "";
+  }
+
+  return category;
+};
+
+const getCategoryName = (category) => {
+  if (!category) {
+    return "";
+  }
+
+  if (typeof category === "object") {
+    return category.name || "";
+  }
+
+  return "";
+};
+
+const getSubcategoryId = (subcategory) => {
+  if (!subcategory) {
+    return "";
+  }
+
+  if (typeof subcategory === "object") {
+    return subcategory._id || "";
+  }
+
+  return subcategory;
+};
+
+const getSubcategoryName = (subcategory) => {
+  if (!subcategory) {
+    return "";
+  }
+
+  if (typeof subcategory === "object") {
+    return subcategory.name || "";
+  }
+
+  return "";
+};
+
+const normalizeProductsResponse = (data) => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.products)) {
+    return data.products;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  if (Array.isArray(data?.results)) {
+    return data.results;
+  }
+
+  return [];
+};
+
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const cart = useSelector((state) => state.cart || []);
-  const wishlist = useSelector((state) => state.wishlist || []);
+  const cart = useSelector(
+    (state) => state.cart || []
+  );
 
-  const user = useSelector((state) => state.user);
+  const wishlist = useSelector(
+    (state) => state.wishlist || []
+  );
+
+  const user = useSelector(
+    (state) => state.user
+  );
 
   const isAuthenticated = Boolean(user);
 
   const [product, setProduct] = useState(null);
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedVariant, setSelectedVariant] =
+    useState(null);
+
   const [selectedAttributes, setSelectedAttributes] =
     useState({});
-  const [selectedImage, setSelectedImage] = useState("");
+
+  const [selectedImage, setSelectedImage] =
+    useState("");
+
   const [quantity, setQuantity] = useState(1);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [relatedProducts, setRelatedProducts] =
+    useState([]);
+
+  const [relatedLoading, setRelatedLoading] =
+    useState(true);
+
+  useLayoutEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "instant",
+    });
+  }, [id]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -197,9 +342,12 @@ export default function ProductDetails() {
         setLoading(true);
         setError("");
 
-        const response = await api.get(`/products/${id}`);
+        const response = await api.get(
+          `/products/${id}`
+        );
 
-        const productData = response.data?.product;
+        const productData =
+          response.data?.product;
 
         if (!productData) {
           throw new Error("Product not found");
@@ -207,34 +355,45 @@ export default function ProductDetails() {
 
         setProduct(productData);
 
-        const productVariants = getVariants(productData);
+        const productVariants =
+          getVariants(productData);
 
         if (productVariants.length > 0) {
           const firstVariant =
             productVariants.find(
-              (variant) => Number(variant.stock) > 0
+              (variant) =>
+                Number(variant?.stock) > 0
             ) || productVariants[0];
 
           setSelectedVariant(firstVariant);
 
-          const attributes = getAttributes(firstVariant);
+          const attributes =
+            getAttributes(firstVariant);
 
           setSelectedAttributes(attributes);
 
           const variantImages =
             getVariantImages(firstVariant);
 
-          setSelectedImage(variantImages[0] || "");
+          setSelectedImage(
+            variantImages[0] || ""
+          );
         } else {
           setSelectedVariant(null);
           setSelectedAttributes({});
           setSelectedImage("");
         }
+
+        setQuantity(1);
       } catch (error) {
-        console.error("FETCH PRODUCT ERROR:", error);
+        console.error(
+          "FETCH PRODUCT ERROR:",
+          error
+        );
 
         setError(
           error.response?.data?.message ||
+            error.message ||
             "Failed to load product"
         );
       } finally {
@@ -242,17 +401,137 @@ export default function ProductDetails() {
       }
     };
 
-    fetchProduct();
+    if (id) {
+      fetchProduct();
+    }
   }, [id]);
 
-  const variants = getVariants(product);
+  useEffect(() => {
+    const fetchRelatedProducts = async () => {
+      try {
+        setRelatedLoading(true);
 
-  const attributeOptions = getAttributeOptions(
-    variants,
-    selectedAttributes
+        let products = [];
+
+        try {
+          const response = await api.get(
+            `/products/${id}/related`
+          );
+
+          products = normalizeProductsResponse(
+            response.data
+          );
+        } catch (relatedError) {
+          console.warn(
+            "RELATED API FAILED:",
+            relatedError
+          );
+        }
+
+        if (!products.length) {
+          try {
+            const response = await api.get(
+              "/products/products"
+            );
+
+            products =
+              normalizeProductsResponse(
+                response.data
+              );
+          } catch (fallbackError) {
+            console.warn(
+              "RELATED FALLBACK FAILED:",
+              fallbackError
+            );
+          }
+        }
+
+        const currentProductId = String(id);
+
+        const filteredProducts =
+          products.filter(
+            (item) =>
+              item?._id &&
+              String(item._id) !==
+                currentProductId
+          );
+
+        const currentCategoryId =
+          getCategoryId(product?.category);
+
+        const currentSubcategoryId =
+          getSubcategoryId(
+            product?.subcategory
+          );
+
+        const sameSubcategory =
+          currentSubcategoryId &&
+          filteredProducts.filter(
+            (item) =>
+              String(
+                getSubcategoryId(
+                  item?.subcategory
+                )
+              ) ===
+              String(currentSubcategoryId)
+          );
+
+        const sameCategory =
+          currentCategoryId &&
+          filteredProducts.filter(
+            (item) =>
+              String(
+                getCategoryId(
+                  item?.category
+                )
+              ) ===
+              String(currentCategoryId)
+          );
+
+        let finalProducts = [];
+
+        if (sameSubcategory?.length) {
+          finalProducts = sameSubcategory;
+        } else if (sameCategory?.length) {
+          finalProducts = sameCategory;
+        } else {
+          finalProducts = filteredProducts;
+        }
+
+        setRelatedProducts(
+          finalProducts.slice(0, 8)
+        );
+      } catch (error) {
+        console.error(
+          "FETCH RELATED PRODUCTS ERROR:",
+          error
+        );
+
+        setRelatedProducts([]);
+      } finally {
+        setRelatedLoading(false);
+      }
+    };
+
+    if (id && product) {
+      fetchRelatedProducts();
+    }
+  }, [id, product]);
+
+  const variants = useMemo(
+    () => getVariants(product),
+    [product]
   );
 
-  const images = getVariantImages(selectedVariant);
+  const attributeOptions = useMemo(
+    () => getAttributeOptions(variants),
+    [variants]
+  );
+
+  const images = useMemo(
+    () => getVariantImages(selectedVariant),
+    [selectedVariant]
+  );
 
   const finalPrice = selectedVariant
     ? getVariantFinalPrice(selectedVariant)
@@ -266,47 +545,57 @@ export default function ProductDetails() {
     ? getDiscountPercentage(selectedVariant)
     : 0;
 
-  const stock = Number(selectedVariant?.stock) || 0;
+  const stock =
+    Number(selectedVariant?.stock) || 0;
 
   const outOfStock = stock <= 0;
 
-  const hasDiscount = finalPrice < originalPrice;
+  const hasDiscount =
+    finalPrice < originalPrice;
 
   const categoryName =
-    typeof product?.category === "object"
-      ? product.category?.name
-      : product?.category;
+    getCategoryName(product?.category) ||
+    (typeof product?.category === "string"
+      ? product.category
+      : "");
 
   const subcategoryName =
-    typeof product?.subcategory === "object"
-      ? product.subcategory?.name
-      : product?.subcategory;
+    getSubcategoryName(
+      product?.subcategory
+    ) ||
+    (typeof product?.subcategory === "string"
+      ? product.subcategory
+      : "");
 
   const cartItem = cart.find((item) => {
-    const itemProductId = item.product || item._id;
+    const itemProductId =
+      item.product || item._id;
 
     const itemVariantId =
-      item.variantId || item.variant?._id;
+      item.variantId ||
+      item.variant?._id;
 
     return (
-      String(itemProductId) === String(product?._id) &&
+      String(itemProductId) ===
+        String(product?._id) &&
       String(itemVariantId) ===
         String(selectedVariant?._id)
     );
   });
 
-  const cartQuantity = Number(cartItem?.quantity) || 0;
+  const cartQuantity =
+    Number(cartItem?.quantity) || 0;
 
   const isWishlisted =
     product &&
     wishlist.some(
       (item) =>
-        String(item._id) === String(product._id)
+        String(item?._id) ===
+        String(product?._id)
     );
 
   const handleLoginRequired = () => {
     toast.warning("Please login first.");
-
     navigate("/login");
   };
 
@@ -319,27 +608,43 @@ export default function ProductDetails() {
       [attributeName]: value,
     };
 
-    const matchingVariant = findMatchingVariant(
-      variants.filter(
-        (variant) => Number(variant.stock) > 0
-      ),
-      newAttributes
-    );
+    const matchingVariant =
+      findVariantAfterAttributeChange(
+        variants,
+        newAttributes,
+        attributeName
+      );
 
     if (matchingVariant) {
-      setSelectedAttributes(newAttributes);
-      setSelectedVariant(matchingVariant);
+      const matchingAttributes =
+        getAttributes(matchingVariant);
+
+      setSelectedAttributes(
+        matchingAttributes
+      );
+
+      setSelectedVariant(
+        matchingVariant
+      );
 
       const variantImages =
-        getVariantImages(matchingVariant);
+        getVariantImages(
+          matchingVariant
+        );
 
-      setSelectedImage(variantImages[0] || "");
+      setSelectedImage(
+        variantImages[0] || ""
+      );
+
       setQuantity(1);
 
       return;
     }
 
-    setSelectedAttributes(newAttributes);
+    setSelectedAttributes(
+      newAttributes
+    );
+
     setSelectedVariant(null);
     setSelectedImage("");
     setQuantity(1);
@@ -351,15 +656,22 @@ export default function ProductDetails() {
 
   const increaseQuantity = () => {
     if (quantity >= stock) {
-      toast.info(`Only ${stock} available`);
+      toast.info(
+        `Only ${stock} available`
+      );
       return;
     }
 
-    setQuantity((prev) => prev + 1);
+    setQuantity(
+      (prev) => prev + 1
+    );
   };
 
   const decreaseQuantity = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
+    setQuantity(
+      (prev) =>
+        Math.max(1, prev - 1)
+    );
   };
 
   const createCartProduct = () => {
@@ -368,27 +680,54 @@ export default function ProductDetails() {
     }
 
     const variantImages =
-      getVariantImages(selectedVariant);
+      getVariantImages(
+        selectedVariant
+      );
 
-    const attributes = getAttributes(selectedVariant);
+    const attributes =
+      getAttributes(
+        selectedVariant
+      );
 
     return {
       _id: product._id,
       name: product.name,
-      description: product.description,
-      category: product.category,
-      subcategory: product.subcategory,
+      description:
+        product.description,
 
-      variantId: selectedVariant._id,
+      category:
+        product.category,
+
+      subcategory:
+        product.subcategory,
+
+      variantId:
+        selectedVariant._id,
 
       variant: {
-        _id: selectedVariant._id,
+        _id:
+          selectedVariant._id,
+
         attributes,
-        price: Number(selectedVariant.price) || 0,
-        discountType: selectedVariant.discountType,
+
+        price:
+          Number(
+            selectedVariant.price
+          ) || 0,
+
+        discountType:
+          selectedVariant.discountType,
+
         discountValue:
-          Number(selectedVariant.discountValue) || 0,
-        stock: Number(selectedVariant.stock) || 0,
+          Number(
+            selectedVariant.discountValue
+          ) || 0,
+
+        stock:
+          Number(
+            selectedVariant.stock
+          ) || 0,
+
         images: variantImages,
       },
 
@@ -398,30 +737,41 @@ export default function ProductDetails() {
 
       originalPrice,
 
-      discountType: selectedVariant.discountType,
+      discountType:
+        selectedVariant.discountType,
 
       discountValue:
-        Number(selectedVariant.discountValue) || 0,
+        Number(
+          selectedVariant.discountValue
+        ) || 0,
 
       stock,
 
       images: variantImages,
 
-      image: variantImages[0] || "",
+      image:
+        variantImages[0] || "",
 
       quantity: 1,
     };
   };
 
   const addQuantityToCart = () => {
-    const cartProduct = createCartProduct();
+    const cartProduct =
+      createCartProduct();
 
     if (!cartProduct) {
       return false;
     }
 
-    for (let i = 0; i < quantity; i++) {
-      dispatch(addToCart(cartProduct));
+    for (
+      let i = 0;
+      i < quantity;
+      i++
+    ) {
+      dispatch(
+        addToCart(cartProduct)
+      );
     }
 
     return true;
@@ -434,19 +784,26 @@ export default function ProductDetails() {
     }
 
     if (!selectedVariant) {
-      toast.error("Please select a valid variant");
+      toast.error(
+        "Please select a valid variant"
+      );
       return;
     }
 
     if (outOfStock) {
-      toast.error("Selected variant is out of stock");
+      toast.error(
+        "Selected variant is out of stock"
+      );
       return;
     }
 
     if (cartItem) {
       toast.info(
         <div className="existing-cart-toast">
-          <span>Product is already in your cart</span>
+          <span>
+            Product is already in your
+            cart
+          </span>
 
           <button
             type="button"
@@ -465,17 +822,22 @@ export default function ProductDetails() {
     }
 
     if (quantity > stock) {
-      toast.error(`Only ${stock} available`);
+      toast.error(
+        `Only ${stock} available`
+      );
       return;
     }
 
-    const added = addQuantityToCart();
+    const added =
+      addQuantityToCart();
 
     if (!added) {
       return;
     }
 
-    toast.success("Added to cart");
+    toast.success(
+      "Added to cart"
+    );
   };
 
   const handleBuyNow = () => {
@@ -485,21 +847,31 @@ export default function ProductDetails() {
     }
 
     if (!selectedVariant) {
-      toast.error("Please select a valid variant");
+      toast.error(
+        "Please select a valid variant"
+      );
       return;
     }
 
     if (outOfStock) {
-      toast.error("Selected variant is out of stock");
+      toast.error(
+        "Selected variant is out of stock"
+      );
       return;
     }
 
-    if (cartQuantity + quantity > stock) {
-      toast.error(`Only ${stock} available`);
+    if (
+      cartQuantity + quantity >
+      stock
+    ) {
+      toast.error(
+        `Only ${stock} available`
+      );
       return;
     }
 
-    const added = addQuantityToCart();
+    const added =
+      addQuantityToCart();
 
     if (!added) {
       return;
@@ -518,7 +890,9 @@ export default function ProductDetails() {
       return;
     }
 
-    dispatch(toggleWishlist(product));
+    dispatch(
+      toggleWishlist(product)
+    );
 
     toast.success(
       isWishlisted
@@ -553,7 +927,8 @@ export default function ProductDetails() {
             </h2>
 
             <p className="product-error-text">
-              {error || "Unable to load product"}
+              {error ||
+                "Unable to load product"}
             </p>
           </div>
         </div>
@@ -565,33 +940,42 @@ export default function ProductDetails() {
     <section className="product-details-page">
       <div className="product-details-container">
         <div className="product-breadcrumb">
-          <Link to="/">Home</Link>
+          <Link to="/">
+            Home
+          </Link>
 
           <span>/</span>
 
           <Link
             to={`/categories/${
-              product.category?._id || product.category
+              product.category?._id ||
+              product.category
             }`}
           >
-            {categoryName || "Category"}
+            {categoryName ||
+              "Category"}
           </Link>
 
           <span>/</span>
 
           <span>
-            {subcategoryName || "Subcategory"}
+            {subcategoryName ||
+              "Subcategory"}
           </span>
 
           <span>/</span>
 
-          <span>{product.name}</span>
+          <span>
+            {product.name}
+          </span>
         </div>
 
         <button
           type="button"
           className="product-page-back-btn"
-          onClick={() => navigate(-1)}
+          onClick={() =>
+            navigate(-1)
+          }
         >
           <ArrowLeft size={18} />
           Back
@@ -608,40 +992,53 @@ export default function ProductDetails() {
             >
               {images.length > 1 && (
                 <div className="product-thumbnail-list">
-                  {images.map((image, index) => (
-                    <button
-                      key={`${image}-${index}`}
-                      type="button"
-                      className={`product-thumbnail ${
-                        selectedImage === image
-                          ? "product-thumbnail-active"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        handleImageChange(image)
-                      }
-                    >
-                      <img
-                        src={getImageUrl(image)}
-                        alt={`${product.name} ${
-                          index + 1
+                  {images.map(
+                    (
+                      image,
+                      index
+                    ) => (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        className={`product-thumbnail ${
+                          selectedImage ===
+                          image
+                            ? "product-thumbnail-active"
+                            : ""
                         }`}
-                      />
-                    </button>
-                  ))}
+                        onClick={() =>
+                          handleImageChange(
+                            image
+                          )
+                        }
+                      >
+                        <img
+                          src={getImageUrl(
+                            image
+                          )}
+                          alt={`${product.name} ${
+                            index + 1
+                          }`}
+                        />
+                      </button>
+                    )
+                  )}
                 </div>
               )}
 
               <div className="product-image-card">
                 {hasDiscount && (
                   <span className="product-image-discount">
-                    {discountPercentage}% OFF
+                    {discountPercentage}%
+                    OFF
                   </span>
                 )}
 
                 {selectedImage ? (
                   <img
-                    src={getImageUrl(selectedImage)}
+                    src={getImageUrl(
+                      selectedImage
+                    )}
                     alt={product.name}
                     className="product-main-image"
                   />
@@ -673,9 +1070,12 @@ export default function ProductDetails() {
 
             <div className="product-price-row">
               <strong className="product-price">
-                {`₹${Math.round(
+                ₹
+                {Math.round(
                   finalPrice
-                ).toLocaleString("en-IN")}`}
+                ).toLocaleString(
+                  "en-IN"
+                )}
               </strong>
 
               {hasDiscount && (
@@ -684,11 +1084,14 @@ export default function ProductDetails() {
                     ₹
                     {Math.round(
                       originalPrice
-                    ).toLocaleString("en-IN")}
+                    ).toLocaleString(
+                      "en-IN"
+                    )}
                   </del>
 
                   <span className="product-discount">
-                    {discountPercentage}% OFF
+                    {discountPercentage}%
+                    OFF
                   </span>
                 </>
               )}
@@ -700,8 +1103,13 @@ export default function ProductDetails() {
               </p>
             )}
 
-            {Object.entries(attributeOptions).map(
-              ([attributeName, values]) => (
+            {Object.entries(
+              attributeOptions
+            ).map(
+              ([
+                attributeName,
+                values,
+              ]) => (
                 <div
                   className="product-variant-selector"
                   key={attributeName}
@@ -712,41 +1120,48 @@ export default function ProductDetails() {
                     </strong>
 
                     <span className="product-option-value">
-                      {selectedAttributes[
-                        attributeName
-                      ] || ""}
+                      {
+                        selectedAttributes[
+                          attributeName
+                        ]
+                      }
                     </span>
                   </div>
 
                   <div className="product-variant-options">
-                    {values.map((value) => {
-                      const isSelected =
-                        String(
-                          selectedAttributes[
-                            attributeName
-                          ]
-                        ) === String(value);
+                    {values.map(
+                      (value) => {
+                        const isSelected =
+                          String(
+                            selectedAttributes[
+                              attributeName
+                            ]
+                          ) ===
+                          String(
+                            value
+                          );
 
-                      return (
-                        <button
-                          key={value}
-                          type="button"
-                          className={`product-variant-option ${
-                            isSelected
-                              ? "product-variant-option-active"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handleAttributeChange(
-                              attributeName,
-                              value
-                            )
-                          }
-                        >
-                          {value}
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={`${attributeName}-${value}`}
+                            type="button"
+                            className={`product-variant-option ${
+                              isSelected
+                                ? "product-variant-option-active"
+                                : ""
+                            }`}
+                            onClick={() =>
+                              handleAttributeChange(
+                                attributeName,
+                                value
+                              )
+                            }
+                          >
+                            {value}
+                          </button>
+                        );
+                      }
+                    )}
                   </div>
                 </div>
               )
@@ -755,28 +1170,34 @@ export default function ProductDetails() {
             {selectedVariant && (
               <div className="product-selected-variant">
                 {Object.entries(
-                  getAttributes(selectedVariant)
-                ).map(([key, value]) => (
-                  <div key={key}>
-                    <span className="product-meta-text">
-                      {key}
-                    </span>
+                  getAttributes(
+                    selectedVariant
+                  )
+                ).map(
+                  ([key, value]) => (
+                    <div key={key}>
+                      <span className="product-meta-text">
+                        {key}
+                      </span>
 
-                    <strong className="product-value-text">
-                      {value}
-                    </strong>
-                  </div>
-                ))}
+                      <strong className="product-value-text">
+                        {value}
+                      </strong>
+                    </div>
+                  )
+                )}
               </div>
             )}
 
-            {!selectedVariant && variants.length > 0 && (
-              <div className="product-selected-variant">
-                <strong className="product-warning-text">
-                  This combination is not available
-                </strong>
-              </div>
-            )}
+            {!selectedVariant &&
+              variants.length > 0 && (
+                <div className="product-selected-variant">
+                  <strong className="product-warning-text">
+                    This combination
+                    is not available
+                  </strong>
+                </div>
+              )}
 
             <div className="product-stock-row product-label-text">
               <strong className="product-label-text">
@@ -792,8 +1213,10 @@ export default function ProductDetails() {
                 <span className="product-stock-in">
                   <span></span>
                   In Stock
+
                   <small className="product-small-text">
-                    ({stock} available)
+                    ({stock}{" "}
+                    available)
                   </small>
                 </span>
               )}
@@ -807,21 +1230,29 @@ export default function ProductDetails() {
               <div className="product-quantity-control">
                 <button
                   type="button"
-                  onClick={decreaseQuantity}
+                  onClick={
+                    decreaseQuantity
+                  }
                   disabled={
-                    quantity <= 1 || outOfStock
+                    quantity <= 1 ||
+                    outOfStock
                   }
                 >
                   <Minus size={18} />
                 </button>
 
-                <span>{quantity}</span>
+                <span>
+                  {quantity}
+                </span>
 
                 <button
                   type="button"
-                  onClick={increaseQuantity}
+                  onClick={
+                    increaseQuantity
+                  }
                   disabled={
-                    outOfStock || quantity >= stock
+                    outOfStock ||
+                    quantity >= stock
                   }
                 >
                   <Plus size={18} />
@@ -837,7 +1268,9 @@ export default function ProductDetails() {
                     ? "product-wishlist-active"
                     : ""
                 }`}
-                onClick={handleWishlist}
+                onClick={
+                  handleWishlist
+                }
               >
                 <Heart
                   size={22}
@@ -857,21 +1290,29 @@ export default function ProductDetails() {
               <button
                 type="button"
                 className="product-cart-button"
-                onClick={handleAddToCart}
+                onClick={
+                  handleAddToCart
+                }
                 disabled={
-                  outOfStock || !selectedVariant
+                  outOfStock ||
+                  !selectedVariant
                 }
               >
-                <ShoppingCart size={19} />
+                <ShoppingCart
+                  size={19}
+                />
                 Add to Cart
               </button>
 
               <button
                 type="button"
                 className="product-buy-button"
-                onClick={handleBuyNow}
+                onClick={
+                  handleBuyNow
+                }
                 disabled={
-                  outOfStock || !selectedVariant
+                  outOfStock ||
+                  !selectedVariant
                 }
               >
                 Buy Now
@@ -880,7 +1321,224 @@ export default function ProductDetails() {
           </div>
         </div>
 
-        <ProductReviews productId={product._id} />
+        <ProductReviews
+          productId={product._id}
+        />
+
+        {relatedLoading && (
+          <section className="related-products-section">
+            <div className="related-products-header">
+              <span className="related-products-label">
+                You may also like
+              </span>
+
+              <h2 className="related-products-title">
+                Related Products
+              </h2>
+            </div>
+
+            <div className="related-products-grid">
+              {Array.from({
+                length: 4,
+              }).map(
+                (_, index) => (
+                  <div
+                    className="related-product-card"
+                    key={index}
+                  >
+                    <div className="related-product-image-wrapper">
+                      <div className="related-product-no-image">
+                        Loading...
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          </section>
+        )}
+
+        {!relatedLoading &&
+          relatedProducts.length >
+            0 && (
+            <section className="related-products-section">
+              <div className="related-products-header">
+                <span className="related-products-label">
+                  You may also like
+                </span>
+
+                <h2 className="related-products-title">
+                  Related Products
+                </h2>
+              </div>
+
+              <div className="related-products-grid">
+                {relatedProducts.map(
+                  (
+                    relatedProduct
+                  ) => {
+                    const relatedVariants =
+                      getVariants(
+                        relatedProduct
+                      );
+
+                    const relatedVariant =
+                      relatedVariants.find(
+                        (variant) =>
+                          Number(
+                            variant?.stock
+                          ) > 0
+                      ) ||
+                      relatedVariants[0];
+
+                    const relatedPrice =
+                      Number(
+                        relatedVariant?.price
+                      ) || 0;
+
+                    const relatedFinalPrice =
+                      relatedVariant
+                        ? getVariantFinalPrice(
+                            relatedVariant
+                          )
+                        : Number(
+                            relatedProduct?.price
+                          ) || 0;
+
+                    const relatedDiscount =
+                      relatedVariant
+                        ? getDiscountPercentage(
+                            relatedVariant
+                          )
+                        : 0;
+
+                    const relatedImages =
+                      getVariantImages(
+                        relatedVariant
+                      );
+
+                    const fallbackImage =
+                      Array.isArray(
+                        relatedProduct?.images
+                      )
+                        ? relatedProduct
+                            .images[0]
+                        : relatedProduct?.image;
+
+                    const relatedImage =
+                      relatedImages[0] ||
+                      fallbackImage ||
+                      "";
+
+                    const relatedCategory =
+                      getCategoryName(
+                        relatedProduct?.category
+                      ) ||
+                      (typeof relatedProduct?.category ===
+                      "string"
+                        ? relatedProduct.category
+                        : "Product");
+
+                    return (
+                      <Link
+                        key={
+                          relatedProduct._id
+                        }
+                        to={`/products/${relatedProduct._id}`}
+                        className="related-product-card"
+                      >
+                        <div className="related-product-image-wrapper">
+                          {relatedImage ? (
+                            <img
+                              src={getImageUrl(
+                                relatedImage
+                              )}
+                              alt={
+                                relatedProduct.name
+                              }
+                              className="related-product-image"
+                            />
+                          ) : (
+                            <div className="related-product-no-image">
+                              No Image
+                            </div>
+                          )}
+
+                          {relatedDiscount >
+                            0 && (
+                            <span className="related-product-discount">
+                              {
+                                relatedDiscount
+                              }
+                              % OFF
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="related-product-content">
+                          <h3 className="related-product-name">
+                            {
+                              relatedProduct.name
+                            }
+                          </h3>
+
+                          <span className="related-product-category">
+                            {
+                              relatedCategory
+                            }
+                          </span>
+
+                          <div className="related-product-price-row">
+                            <span className="related-product-price">
+                              ₹
+                              {Math.round(
+                                relatedFinalPrice
+                              ).toLocaleString(
+                                "en-IN"
+                              )}
+                            </span>
+
+                            {relatedFinalPrice <
+                              relatedPrice && (
+                              <span className="related-product-original-price">
+                                ₹
+                                {Math.round(
+                                  relatedPrice
+                                ).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  }
+                )}
+              </div>
+            </section>
+          )}
+
+        {!relatedLoading &&
+          relatedProducts.length ===
+            0 && (
+            <section className="related-products-section">
+              <div className="related-products-header">
+                <span className="related-products-label">
+                  You may also like
+                </span>
+
+                <h2 className="related-products-title">
+                  Related Products
+                </h2>
+              </div>
+
+              <div className="related-products-empty">
+                No related products
+                available.
+              </div>
+            </section>
+          )}
       </div>
     </section>
   );

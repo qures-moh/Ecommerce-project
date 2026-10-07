@@ -74,6 +74,11 @@ const menuItems = [
     icon: Tags,
   },
   {
+    name: "Tags",
+    path: "/admin/tags",
+    icon: Tags,
+  },
+  {
     name: "Attributes",
     path: "/admin/attributes",
     icon: SlidersHorizontal,
@@ -89,7 +94,6 @@ const menuItems = [
     icon: MessageSquare,
   },
 ];
-
   const filteredMenuItems = menuItems.filter((item) =>
     item.name.toLowerCase().includes(search.toLowerCase().trim())
   );

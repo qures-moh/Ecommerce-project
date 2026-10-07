@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { Heart, ShoppingCart } from "lucide-react";
+import {
+  Heart,
+  ShoppingCart,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "react-toastify";
 
 import { addToCart } from "../utils/cartSlice";
@@ -13,7 +18,11 @@ const getImageUrl = (image) => {
     return "";
   }
 
-  if (image.startsWith("http://") || image.startsWith("https://")) {
+  if (
+    image.startsWith("http://") ||
+    image.startsWith("https://") ||
+    image.startsWith("data:")
+  ) {
     return image;
   }
 
@@ -21,9 +30,15 @@ const getImageUrl = (image) => {
     api.defaults.baseURL?.replace(/\/api\/?$/, "") ||
     "http://localhost:3000";
 
-  const cleanImage = image.replace(/\\/g, "/").replace(/^\/+/, "");
+  const cleanImage = image
+    .replace(/\\/g, "/")
+    .replace(/^\/+/, "");
 
-  return `${baseUrl}/${cleanImage}`;
+  if (cleanImage.startsWith("uploads/")) {
+    return `${baseUrl}/${cleanImage}`;
+  }
+
+  return `${baseUrl}/uploads/${cleanImage}`;
 };
 
 const getVariant = (product) => {
@@ -36,8 +51,14 @@ const getVariant = (product) => {
 
   return (
     product.variants.find(
-      (variant) => variant.isActive !== false
-    ) || product.variants[0]
+      (variant) =>
+        variant?.isActive !== false &&
+        Number(variant?.stock) > 0
+    ) ||
+    product.variants.find(
+      (variant) => variant?.isActive !== false
+    ) ||
+    product.variants[0]
   );
 };
 
@@ -47,7 +68,8 @@ const getFinalPrice = (variant) => {
   }
 
   const price = Number(variant.price) || 0;
-  const discountValue = Number(variant.discountValue) || 0;
+  const discountValue =
+    Number(variant.discountValue) || 0;
 
   if (variant.discountType === "percentage") {
     return Math.max(
@@ -57,7 +79,10 @@ const getFinalPrice = (variant) => {
   }
 
   if (variant.discountType === "flat") {
-    return Math.max(0, price - discountValue);
+    return Math.max(
+      0,
+      price - discountValue
+    );
   }
 
   return price;
@@ -68,7 +93,8 @@ const getDiscountText = (variant) => {
     return "";
   }
 
-  const discountValue = Number(variant.discountValue) || 0;
+  const discountValue =
+    Number(variant.discountValue) || 0;
 
   if (discountValue <= 0) {
     return "";
@@ -106,11 +132,20 @@ const getAttributes = (attributes) => {
     return [];
   }
 
-  if (typeof attributes.entries === "function") {
+  if (
+    typeof attributes.entries === "function"
+  ) {
     return Array.from(attributes.entries());
   }
 
-  return Object.entries(attributes);
+  if (
+    typeof attributes === "object" &&
+    !Array.isArray(attributes)
+  ) {
+    return Object.entries(attributes);
+  }
+
+  return [];
 };
 
 const Products = () => {
@@ -118,38 +153,69 @@ const Products = () => {
   const navigate = useNavigate();
 
   const wishlist = useSelector(
-    (state) => state.wishlist || state.whishlist || []
+    (state) =>
+      state.wishlist ||
+      state.whishlist ||
+      []
   );
 
-  const cart = useSelector((state) => state.cart || []);
+  const cart = useSelector(
+    (state) => state.cart || []
+  );
 
-  const user = useSelector((state) => state.user);
+  const user = useSelector(
+    (state) => state.user
+  );
 
   const isAuthenticated = Boolean(user);
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
 
-  const [loading, setLoading] = useState(false);
-  const [categoryLoading, setCategoryLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [error, setError] = useState(null);
+  const [categoryLoading, setCategoryLoading] =
+    useState(false);
 
-  const [category, setCategory] = useState("");
-  const [sort, setSort] = useState("newest");
+  const [error, setError] =
+    useState(null);
+
+  const [category, setCategory] =
+    useState("");
+
+  const [sort, setSort] =
+    useState("newest");
+
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const [totalPages, setTotalPages] =
+    useState(1);
+
+  const [totalProducts, setTotalProducts] =
+    useState(0);
+
+  const productsPerPage = 10;
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setCategoryLoading(true);
 
-        const response = await api.get("/categories");
+        const response =
+          await api.get("/categories");
 
         setCategories(
-          response.data.categories || response.data
+          response.data?.categories ||
+            response.data ||
+            []
         );
       } catch (error) {
-        console.error("Categories API Error:", error);
+        console.error(
+          "Categories API Error:",
+          error
+        );
 
         setCategories([]);
       } finally {
@@ -166,15 +232,76 @@ const Products = () => {
         setLoading(true);
         setError(null);
 
-        const response = await api.get("/products", {
-          params: {
-            category,
-          },
-        });
+        const response = await api.get(
+          "/products",
+          {
+            params: {
+              category,
+              page: currentPage,
+              limit: productsPerPage,
+            },
+          }
+        );
 
-        setProducts(response.data.products || []);
+        const data = response.data || {};
+
+        const productData =
+          Array.isArray(data)
+            ? data
+            : data.products || [];
+
+        setProducts(
+          Array.isArray(productData)
+            ? productData
+            : []
+        );
+
+        const apiTotalPages =
+          Number(
+            data.totalPages ??
+              data.pagination?.totalPages
+          ) || 0;
+
+        const apiTotalProducts =
+          Number(
+            data.totalProducts ??
+              data.total ??
+              data.pagination?.totalProducts ??
+              data.pagination?.total
+          ) || 0;
+
+        if (apiTotalPages > 0) {
+          setTotalPages(apiTotalPages);
+        } else if (apiTotalProducts > 0) {
+          setTotalPages(
+            Math.ceil(
+              apiTotalProducts /
+                productsPerPage
+            )
+          );
+        } else {
+          setTotalPages(
+            productData.length <
+              productsPerPage
+              ? currentPage
+              : currentPage + 1
+          );
+        }
+
+        if (apiTotalProducts > 0) {
+          setTotalProducts(
+            apiTotalProducts
+          );
+        } else {
+          setTotalProducts(
+            productData.length
+          );
+        }
       } catch (error) {
-        console.error("Products API Error:", error);
+        console.error(
+          "Products API Error:",
+          error
+        );
 
         setError(
           error.response?.data?.message ||
@@ -183,16 +310,25 @@ const Products = () => {
         );
 
         setProducts([]);
+        setTotalPages(1);
+        setTotalProducts(0);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProducts();
+  }, [category, currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [category]);
 
   const handleLoginRequired = () => {
-    toast.warning("Please login first.");
+    toast.warning(
+      "Please login first."
+    );
+
     navigate("/login");
   };
 
@@ -202,28 +338,42 @@ const Products = () => {
       return;
     }
 
-    const variant = getVariant(product);
+    const variant =
+      getVariant(product);
 
     if (!variant) {
-      toast.error("Product variant is not available");
+      toast.error(
+        "Product variant is not available"
+      );
       return;
     }
 
-    if (Number(variant.stock) <= 0) {
-      toast.error("Product is out of stock");
+    if (
+      Number(variant.stock) <= 0
+    ) {
+      toast.error(
+        "Product is out of stock"
+      );
       return;
     }
 
-    const alreadyInCart = cart.some(
-      (item) =>
-        String(item._id || item.product) ===
-        String(product._id)
-    );
+    const alreadyInCart =
+      cart.some(
+        (item) =>
+          String(
+            item._id ||
+              item.product
+          ) ===
+          String(product._id)
+      );
 
     if (alreadyInCart) {
       toast.info(
         <div className="existing-cart-toast">
-          <span>Product is already in your cart</span>
+          <span>
+            Product is already in
+            your cart
+          </span>
 
           <Link
             to="/cart"
@@ -237,31 +387,60 @@ const Products = () => {
       return;
     }
 
-    const finalPrice = getFinalPrice(variant);
+    const finalPrice =
+      getFinalPrice(variant);
 
     dispatch(
       addToCart({
         _id: product._id,
+
         product: product._id,
+
         name: product.name,
+
         variantId: variant._id,
+
         variant,
-        attributes: Object.fromEntries(
-          getAttributes(variant.attributes)
-        ),
+
+        attributes:
+          Object.fromEntries(
+            getAttributes(
+              variant.attributes
+            )
+          ),
+
         price: finalPrice,
-        originalPrice: Number(variant.price) || 0,
-        stock: Number(variant.stock) || 0,
-        images: variant.images || [],
-        image: variant.images?.[0] || "",
+
+        originalPrice:
+          Number(
+            variant.price
+          ) || 0,
+
+        stock:
+          Number(
+            variant.stock
+          ) || 0,
+
+        images:
+          variant.images || [],
+
+        image:
+          variant.images?.[0] ||
+          "",
+
         quantity: 1,
       })
     );
 
-    toast.success(`${product.name} added to cart`);
+    toast.success(
+      `${product.name} added to cart`
+    );
   };
 
-  const handleWishlist = (event, product) => {
+  const handleWishlist = (
+    event,
+    product
+  ) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -270,12 +449,16 @@ const Products = () => {
       return;
     }
 
-    const isWishlisted = wishlist.some(
-      (item) =>
-        String(item._id) === String(product._id)
-    );
+    const isWishlisted =
+      wishlist.some(
+        (item) =>
+          String(item._id) ===
+          String(product._id)
+      );
 
-    dispatch(toggleWishlist(product));
+    dispatch(
+      toggleWishlist(product)
+    );
 
     if (isWishlisted) {
       toast.info(
@@ -288,29 +471,117 @@ const Products = () => {
     }
   };
 
-  const sortedProducts = [...products].sort((a, b) => {
-    const variantA = getVariant(a);
-    const variantB = getVariant(b);
+  const sortedProducts =
+    [...products].sort(
+      (a, b) => {
+        const variantA =
+          getVariant(a);
 
-    if (sort === "low") {
-      return (
-        getFinalPrice(variantA) -
-        getFinalPrice(variantB)
-      );
-    }
+        const variantB =
+          getVariant(b);
 
-    if (sort === "high") {
-      return (
-        getFinalPrice(variantB) -
-        getFinalPrice(variantA)
-      );
-    }
+        if (sort === "low") {
+          return (
+            getFinalPrice(
+              variantA
+            ) -
+            getFinalPrice(
+              variantB
+            )
+          );
+        }
 
-    return (
-      new Date(b.createdAt || 0) -
-      new Date(a.createdAt || 0)
+        if (sort === "high") {
+          return (
+            getFinalPrice(
+              variantB
+            ) -
+            getFinalPrice(
+              variantA
+            )
+          );
+        }
+
+        return (
+          new Date(
+            b.createdAt || 0
+          ) -
+          new Date(
+            a.createdAt || 0
+          )
+        );
+      }
     );
-  });
+
+  const handlePageChange = (
+    page
+  ) => {
+    if (
+      page < 1 ||
+      page > totalPages ||
+      page === currentPage
+    ) {
+      return;
+    }
+
+    setCurrentPage(page);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+
+    if (totalPages <= 7) {
+      for (
+        let i = 1;
+        i <= totalPages;
+        i++
+      ) {
+        pages.push(i);
+      }
+
+      return pages;
+    }
+
+    pages.push(1);
+
+    if (currentPage > 4) {
+      pages.push("...");
+    }
+
+    const start = Math.max(
+      2,
+      currentPage - 1
+    );
+
+    const end = Math.min(
+      totalPages - 1,
+      currentPage + 1
+    );
+
+    for (
+      let i = start;
+      i <= end;
+      i++
+    ) {
+      pages.push(i);
+    }
+
+    if (
+      currentPage <
+      totalPages - 3
+    ) {
+      pages.push("...");
+    }
+
+    pages.push(totalPages);
+
+    return pages;
+  };
 
   return (
     <div className="catalog-page">
@@ -320,10 +591,14 @@ const Products = () => {
             OUR COLLECTION
           </span>
 
-          <h1>All Products</h1>
+          <h1>
+            All Products
+          </h1>
 
           <p>
-            Explore our collection of quality products made for you.
+            Explore our collection
+            of quality products made
+            for you.
           </p>
         </div>
 
@@ -336,23 +611,32 @@ const Products = () => {
             <select
               id="catalog-category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(
+                  e.target.value
+                );
+                setCurrentPage(1);
+              }}
             >
-              <option value="">All Categories</option>
+              <option value="">
+                All Categories
+              </option>
 
               {categoryLoading ? (
                 <option disabled>
                   Loading categories...
                 </option>
               ) : (
-                categories.map((item) => (
-                  <option
-                    key={item._id}
-                    value={item._id}
-                  >
-                    {item.name}
-                  </option>
-                ))
+                categories.map(
+                  (item) => (
+                    <option
+                      key={item._id}
+                      value={item._id}
+                    >
+                      {item.name}
+                    </option>
+                  )
+                )
               )}
             </select>
           </div>
@@ -365,7 +649,11 @@ const Products = () => {
             <select
               id="catalog-sort"
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) =>
+                setSort(
+                  e.target.value
+                )
+              }
             >
               <option value="newest">
                 Newest First
@@ -401,190 +689,388 @@ const Products = () => {
           <section className="catalog-products-section">
             <div className="catalog-results">
               <p>
-                {sortedProducts.length}{" "}
-                {sortedProducts.length === 1
+                {totalProducts ||
+                  sortedProducts.length}{" "}
+                {(
+                  totalProducts ||
+                  sortedProducts.length
+                ) === 1
                   ? "product"
                   : "products"}
               </p>
             </div>
 
             <div className="catalog-grid">
-              {sortedProducts.map((product) => {
-                const variant = getVariant(product);
+              {sortedProducts.map(
+                (product) => {
+                  const variant =
+                    getVariant(
+                      product
+                    );
 
-                const image =
-                  variant?.images?.[0] || "";
+                  const image =
+                    variant?.images?.[0] ||
+                    product?.images?.[0] ||
+                    product?.image ||
+                    "";
 
-                const finalPrice =
-                  getFinalPrice(variant);
+                  const finalPrice =
+                    getFinalPrice(
+                      variant
+                    );
 
-                const originalPrice =
-                  Number(variant?.price) || 0;
+                  const originalPrice =
+                    Number(
+                      variant?.price
+                    ) || 0;
 
-                const hasDiscount =
-                  finalPrice < originalPrice;
+                  const hasDiscount =
+                    finalPrice <
+                    originalPrice;
 
-                const discountText =
-                  getDiscountText(variant);
+                  const discountText =
+                    getDiscountText(
+                      variant
+                    );
 
-                const categoryName =
-                  getCategoryName(product.category);
+                  const categoryName =
+                    getCategoryName(
+                      product.category
+                    );
 
-                const isWishlisted =
-                  wishlist.some(
-                    (item) =>
-                      String(item._id) ===
-                      String(product._id)
-                  );
+                  const isWishlisted =
+                    wishlist.some(
+                      (item) =>
+                        String(
+                          item._id
+                        ) ===
+                        String(
+                          product._id
+                        )
+                    );
 
-                const stock =
-                  Number(variant?.stock) || 0;
+                  const stock =
+                    Number(
+                      variant?.stock
+                    ) || 0;
 
-                return (
-                  <div
-                    className="catalog-card"
-                    key={product._id}
-                  >
-                    <Link
-                      to={`/products/${product._id}`}
-                      className="catalog-image-link"
+                  return (
+                    <div
+                      className="catalog-card"
+                      key={
+                        product._id
+                      }
                     >
-                      <div className="catalog-image-box">
-                        {image ? (
-                          <img
-                            src={getImageUrl(image)}
-                            alt={product.name}
-                          />
-                        ) : (
-                          <div className="catalog-no-image">
-                            No Image
-                          </div>
-                        )}
+                      <Link
+                        to={`/products/${product._id}`}
+                        className="catalog-image-link"
+                      >
+                        <div className="catalog-image-box">
+                          {image ? (
+                            <img
+                              src={getImageUrl(
+                                image
+                              )}
+                              alt={
+                                product.name
+                              }
+                              className="catalog-product-image"
+                              onError={(
+                                event
+                              ) => {
+                                event.currentTarget.style.display =
+                                  "none";
 
-                        {hasDiscount &&
-                          discountText && (
-                            <span className="catalog-discount">
-                              {discountText}
-                            </span>
+                                const parent =
+                                  event
+                                    .currentTarget
+                                    .parentElement;
+
+                                if (
+                                  parent &&
+                                  !parent.querySelector(
+                                    ".catalog-no-image"
+                                  )
+                                ) {
+                                  const div =
+                                    document.createElement(
+                                      "div"
+                                    );
+
+                                  div.className =
+                                    "catalog-no-image";
+
+                                  div.textContent =
+                                    "No Image";
+
+                                  parent.appendChild(
+                                    div
+                                  );
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="catalog-no-image">
+                              No Image
+                            </div>
                           )}
 
-                        <button
-                          type="button"
-                          className={`catalog-heart ${
-                            isWishlisted
-                              ? "catalog-heart-active"
-                              : ""
-                          }`}
-                          onClick={(event) =>
-                            handleWishlist(
-                              event,
-                              product
-                            )
-                          }
-                          aria-label={
-                            isWishlisted
-                              ? "Remove from wishlist"
-                              : "Add to wishlist"
-                          }
-                        >
-                          <Heart
-                            size={19}
-                            color={
+                          {hasDiscount &&
+                            discountText && (
+                              <span className="catalog-discount">
+                                {
+                                  discountText
+                                }
+                              </span>
+                            )}
+
+                          <button
+                            type="button"
+                            className={`catalog-heart ${
                               isWishlisted
-                                ? "#ee0f0f"
-                                : "currentColor"
+                                ? "catalog-heart-active"
+                                : ""
+                            }`}
+                            onClick={(
+                              event
+                            ) =>
+                              handleWishlist(
+                                event,
+                                product
+                              )
                             }
-                            fill={
+                            aria-label={
                               isWishlisted
-                                ? "#e61818"
-                                : "none"
+                                ? "Remove from wishlist"
+                                : "Add to wishlist"
                             }
-                            strokeWidth={1.8}
-                          />
-                        </button>
-                      </div>
-                    </Link>
+                          >
+                            <Heart
+                              size={
+                                19
+                              }
+                              color={
+                                isWishlisted
+                                  ? "#ee0f0f"
+                                  : "currentColor"
+                              }
+                              fill={
+                                isWishlisted
+                                  ? "#e61818"
+                                  : "none"
+                              }
+                              strokeWidth={
+                                1.8
+                              }
+                            />
+                          </button>
+                        </div>
+                      </Link>
 
-                    <div className="catalog-info">
-                      {categoryName && (
-                        <span className="catalog-category">
-                          {categoryName}
-                        </span>
-                      )}
-
-                      <h3>{product.name}</h3>
-
-                      {variant &&
-                        getAttributes(
-                          variant.attributes
-                        ).length > 0 && (
-                          <div className="catalog-attributes">
-                            {getAttributes(
-                              variant.attributes
-                            )
-                              .slice(0, 3)
-                              .map(
-                                ([key, value]) => (
-                                  <span key={key}>
-                                    {key}: {value}
-                                  </span>
-                                )
-                              )}
-                          </div>
+                      <div className="catalog-info">
+                        {categoryName && (
+                          <span className="catalog-category">
+                            {
+                              categoryName
+                            }
+                          </span>
                         )}
 
-                      <p className="catalog-description">
-                        {product.description}
-                      </p>
+                        <h3>
+                          {
+                            product.name
+                          }
+                        </h3>
 
-                      <div className="catalog-bottom">
-                        <div className="catalog-price-area">
-                          <span className="catalog-price">
-                            ₹
-                            {finalPrice.toLocaleString(
-                              "en-IN"
-                            )}
-                          </span>
+                        {variant &&
+                          getAttributes(
+                            variant.attributes
+                          ).length >
+                            0 && (
+                            <div className="catalog-attributes">
+                              {getAttributes(
+                                variant.attributes
+                              )
+                                .slice(
+                                  0,
+                                  3
+                                )
+                                .map(
+                                  ([
+                                    key,
+                                    value,
+                                  ]) => (
+                                    <span
+                                      key={
+                                        key
+                                      }
+                                    >
+                                      {
+                                        key
+                                      }
+                                      :{" "}
+                                      {
+                                        value
+                                      }
+                                    </span>
+                                  )
+                                )}
+                            </div>
+                          )}
 
-                          {hasDiscount && (
-                            <span className="catalog-old-price">
+                        <p className="catalog-description">
+                          {
+                            product.description
+                          }
+                        </p>
+
+                        <div className="catalog-bottom">
+                          <div className="catalog-price-area">
+                            <span className="catalog-price">
                               ₹
-                              {originalPrice.toLocaleString(
+                              {Math.round(
+                                finalPrice
+                              ).toLocaleString(
                                 "en-IN"
                               )}
                             </span>
-                          )}
+
+                            {hasDiscount && (
+                              <span className="catalog-old-price">
+                                ₹
+                                {Math.round(
+                                  originalPrice
+                                ).toLocaleString(
+                                  "en-IN"
+                                )}
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            className="catalog-cart"
+                            onClick={() =>
+                              handleAddToCart(
+                                product
+                              )
+                            }
+                            disabled={
+                              isAuthenticated &&
+                              (!variant ||
+                                stock <=
+                                  0)
+                            }
+                          >
+                            <ShoppingCart
+                              size={
+                                16
+                              }
+                            />
+
+                            {stock >
+                            0
+                              ? "Add"
+                              : "Out"}
+                          </button>
                         </div>
-
-                        <button
-                          type="button"
-                          className="catalog-cart"
-                          onClick={() =>
-                            handleAddToCart(product)
-                          }
-                          disabled={
-                            isAuthenticated &&
-                            (!variant || stock <= 0)
-                          }
-                        >
-                          <ShoppingCart size={16} />
-
-                          {stock > 0
-                            ? "Add"
-                            : "Out"}
-                        </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
+
+            {totalPages > 1 && (
+              <div className="catalog-pagination">
+                <button
+                  type="button"
+                  className="catalog-pagination-arrow"
+                  onClick={() =>
+                    handlePageChange(
+                      currentPage -
+                        1
+                    )
+                  }
+                  disabled={
+                    currentPage ===
+                    1
+                  }
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft
+                    size={18}
+                  />
+                </button>
+
+                <div className="catalog-pagination-pages">
+                  {getPageNumbers().map(
+                    (
+                      page,
+                      index
+                    ) =>
+                      page ===
+                      "..." ? (
+                        <span
+                          key={`dots-${index}`}
+                          className="catalog-pagination-dots"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={
+                            page
+                          }
+                          type="button"
+                          className={`catalog-pagination-page ${
+                            currentPage ===
+                            page
+                              ? "catalog-pagination-page-active"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handlePageChange(
+                              page
+                            )
+                          }
+                        >
+                          {
+                            page
+                          }
+                        </button>
+                      )
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="catalog-pagination-arrow"
+                  onClick={() =>
+                    handlePageChange(
+                      currentPage +
+                        1
+                    )
+                  }
+                  disabled={
+                    currentPage ===
+                    totalPages
+                  }
+                  aria-label="Next page"
+                >
+                  <ChevronRight
+                    size={18}
+                  />
+                </button>
+              </div>
+            )}
           </section>
         )}
 
       {!loading &&
         !error &&
-        sortedProducts.length === 0 && (
+        sortedProducts.length ===
+          0 && (
           <div className="catalog-message">
             No products found.
           </div>

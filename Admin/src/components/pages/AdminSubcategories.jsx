@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  X,
-  Upload,
-} from "lucide-react";
+import { Plus, Edit, Trash2, Eye, X, Upload, Power } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../../utils/axios";
 
@@ -46,8 +39,7 @@ const AdminSubcategories = () => {
       console.log(error);
 
       toast.error(
-        error.response?.data?.message ||
-          "Failed to fetch subcategories"
+        error.response?.data?.message || "Failed to fetch subcategories",
       );
     } finally {
       setFetchLoading(false);
@@ -63,8 +55,7 @@ const AdminSubcategories = () => {
       console.log(error);
 
       toast.error(
-        error.response?.data?.message ||
-          "Failed to fetch categories"
+        error.response?.data?.message || "Failed to fetch categories",
       );
     }
   };
@@ -79,18 +70,16 @@ const AdminSubcategories = () => {
       return "";
     }
 
-    if (
-      image.startsWith("http://") ||
-      image.startsWith("https://")
-    ) {
+    if (image.startsWith("http://") || image.startsWith("https://")) {
       return image;
     }
 
-    const cleanImage = image
-      .replace(/\\/g, "/")
-      .replace(/^\/+/, "");
+    const baseUrl =
+      api.defaults.baseURL?.replace(/\/api\/?$/, "") || "http://localhost:3000";
 
-    return `http://localhost:3000/${cleanImage}`;
+    const cleanImage = image.replace(/\\/g, "/").replace(/^\/+/, "");
+
+    return `${baseUrl}/${cleanImage}`;
   };
 
   const validateName = (value) => {
@@ -124,12 +113,7 @@ const AdminSubcategories = () => {
       return "Subcategory image is required";
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-    ];
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
     if (!allowedTypes.includes(file.type)) {
       return "Only JPG, JPEG, PNG or WEBP images are allowed";
@@ -158,9 +142,7 @@ const AdminSubcategories = () => {
 
         setErrors((prev) => ({
           ...prev,
-          image: editingId
-            ? ""
-            : "Subcategory image is required",
+          image: editingId ? "" : "Subcategory image is required",
         }));
 
         return;
@@ -214,9 +196,7 @@ const AdminSubcategories = () => {
     if (name === "category") {
       setErrors((prev) => ({
         ...prev,
-        category: value
-          ? ""
-          : "Please select a category",
+        category: value ? "" : "Please select a category",
       }));
     }
 
@@ -253,6 +233,10 @@ const AdminSubcategories = () => {
   };
 
   const closeModal = () => {
+    if (loading) {
+      return;
+    }
+
     setShowModal(false);
     resetForm();
   };
@@ -267,22 +251,16 @@ const AdminSubcategories = () => {
 
     setErrors((prev) => ({
       ...prev,
-      image: editingId
-        ? ""
-        : "Subcategory image is required",
+      image: editingId ? "" : "Subcategory image is required",
     }));
   };
 
   const validateForm = () => {
     const nameError = validateName(formData.name);
 
-    const categoryError = formData.category
-      ? ""
-      : "Please select a category";
+    const categoryError = formData.category ? "" : "Please select a category";
 
-    const descriptionError = validateDescription(
-      formData.description
-    );
+    const descriptionError = validateDescription(formData.description);
 
     let imageError = "";
 
@@ -301,9 +279,7 @@ const AdminSubcategories = () => {
 
     setErrors(newErrors);
 
-    return !Object.values(newErrors).some(
-      (error) => error
-    );
+    return !Object.values(newErrors).some((error) => error);
   };
 
   const handleSubmit = async (e) => {
@@ -321,41 +297,28 @@ const AdminSubcategories = () => {
 
       data.append("name", formData.name.trim());
       data.append("category", formData.category);
-      data.append(
-        "description",
-        formData.description.trim()
-      );
+      data.append("description", formData.description.trim());
 
       if (formData.image) {
         data.append("image", formData.image);
       }
 
       if (editingId) {
-        await api.patch(
-          `/subcategories/${editingId}`,
-          data
-        );
+        await api.put(`/subcategories/${editingId}`, data);
 
-        toast.success(
-          "Subcategory updated successfully"
-        );
+        toast.success("Subcategory updated successfully");
       } else {
         await api.post("/subcategories", data);
 
-        toast.success(
-          "Subcategory added successfully"
-        );
+        toast.success("Subcategory added successfully");
       }
 
       closeModal();
-      fetchSubcategories();
+      await fetchSubcategories();
     } catch (error) {
       console.log(error);
 
-      toast.error(
-        error.response?.data?.message ||
-          "Something went wrong"
-      );
+      toast.error(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -364,10 +327,7 @@ const AdminSubcategories = () => {
   const handleEdit = (subcategory) => {
     setEditingId(subcategory._id);
 
-    const categoryId =
-      subcategory.category?._id ||
-      subcategory.category ||
-      "";
+    const categoryId = subcategory.category?._id || subcategory.category || "";
 
     setFormData({
       name: subcategory.name || "",
@@ -383,13 +343,33 @@ const AdminSubcategories = () => {
       image: "",
     });
 
-    setImagePreview(
-      subcategory.image
-        ? getImageUrl(subcategory.image)
-        : ""
-    );
+    setImagePreview(subcategory.image ? getImageUrl(subcategory.image) : "");
 
     setShowModal(true);
+  };
+
+  const handleToggleStatus = async (subcategory) => {
+    try {
+      setLoading(true);
+
+      const response = await api.patch(
+        `/subcategories/${subcategory._id}/status`,
+      );
+
+      toast.success(
+        response.data?.message || "Subcategory status updated successfully",
+      );
+
+      await fetchSubcategories();
+    } catch (error) {
+      console.log(error);
+
+      toast.error(
+        error.response?.data?.message || "Failed to update subcategory status",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openDeleteConfirmation = (subcategory) => {
@@ -412,13 +392,9 @@ const AdminSubcategories = () => {
     try {
       setLoading(true);
 
-      await api.delete(
-        `/subcategories/${deleteConfirm._id}`
-      );
+      await api.delete(`/subcategories/${deleteConfirm._id}`);
 
-      toast.success(
-        "Subcategory deleted successfully"
-      );
+      toast.success("Subcategory deleted successfully");
 
       setDeleteConfirm(null);
 
@@ -427,8 +403,7 @@ const AdminSubcategories = () => {
       console.log(error);
 
       toast.error(
-        error.response?.data?.message ||
-          "Failed to delete subcategory"
+        error.response?.data?.message || "Failed to delete subcategory",
       );
     } finally {
       setLoading(false);
@@ -473,10 +448,7 @@ const AdminSubcategories = () => {
             <tbody>
               {fetchLoading ? (
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="subcategory-empty"
-                  >
+                  <td colSpan="5" className="subcategory-empty">
                     Loading subcategories...
                   </td>
                 </tr>
@@ -488,55 +460,42 @@ const AdminSubcategories = () => {
                         <div className="subcategory-image-box">
                           {subcategory.image ? (
                             <img
-                              src={getImageUrl(
-                                subcategory.image
-                              )}
+                              src={getImageUrl(subcategory.image)}
                               alt={subcategory.name}
                               onError={(e) => {
-                                e.currentTarget.style.display =
-                                  "none";
+                                e.currentTarget.style.display = "none";
                               }}
                             />
                           ) : (
                             <span>
-                              {subcategory.name
-                                ?.charAt(0)
-                                .toUpperCase()}
+                              {subcategory.name?.charAt(0).toUpperCase()}
                             </span>
                           )}
                         </div>
 
-                        <strong>
-                          {subcategory.name}
-                        </strong>
+                        <strong>{subcategory.name}</strong>
                       </div>
                     </td>
 
                     <td>
                       <span className="subcategory-category">
-                        {subcategory.category?.name ||
-                          "Unknown"}
+                        {subcategory.category?.name || "Unknown"}
                       </span>
                     </td>
 
                     <td>
                       <span className="subcategory-description">
-                        {subcategory.description ||
-                          "No description"}
+                        {subcategory.description || "No description"}
                       </span>
                     </td>
 
                     <td>
                       <span
                         className={`subcategory-status ${
-                          subcategory.isActive
-                            ? "active"
-                            : "inactive"
+                          subcategory.isActive ? "active" : "inactive"
                         }`}
                       >
-                        {subcategory.isActive
-                          ? "Active"
-                          : "Inactive"}
+                        {subcategory.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
 
@@ -545,9 +504,7 @@ const AdminSubcategories = () => {
                         <button
                           type="button"
                           className="subcategory-view"
-                          onClick={() =>
-                            handleView(subcategory)
-                          }
+                          onClick={() => handleView(subcategory)}
                           title="View"
                         >
                           <Eye size={17} />
@@ -556,9 +513,7 @@ const AdminSubcategories = () => {
                         <button
                           type="button"
                           className="subcategory-edit"
-                          onClick={() =>
-                            handleEdit(subcategory)
-                          }
+                          onClick={() => handleEdit(subcategory)}
                           title="Edit"
                         >
                           <Edit size={17} />
@@ -566,12 +521,23 @@ const AdminSubcategories = () => {
 
                         <button
                           type="button"
-                          className="subcategory-delete"
-                          onClick={() =>
-                            openDeleteConfirmation(
-                              subcategory
-                            )
+                          className={
+                            subcategory.isActive
+                              ? "subcategory-deactivate"
+                              : "subcategory-activate"
                           }
+                          onClick={() => handleToggleStatus(subcategory)}
+                          title={
+                            subcategory.isActive ? "Deactivate" : "Activate"
+                          }
+                        >
+                          <Power size={17} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="subcategory-delete"
+                          onClick={() => openDeleteConfirmation(subcategory)}
                           title="Delete"
                         >
                           <Trash2 size={17} />
@@ -582,10 +548,7 @@ const AdminSubcategories = () => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="subcategory-empty"
-                  >
+                  <td colSpan="5" className="subcategory-empty">
                     No subcategories found
                   </td>
                 </tr>
@@ -600,11 +563,7 @@ const AdminSubcategories = () => {
           <div className="subcategory-modal">
             <div className="subcategory-modal-header">
               <div>
-                <h2>
-                  {editingId
-                    ? "Edit Subcategory"
-                    : "Add Subcategory"}
-                </h2>
+                <h2>{editingId ? "Edit Subcategory" : "Add Subcategory"}</h2>
 
                 <p>
                   {editingId
@@ -617,15 +576,13 @@ const AdminSubcategories = () => {
                 type="button"
                 className="subcategory-close-button"
                 onClick={closeModal}
+                disabled={loading}
               >
                 <X size={21} />
               </button>
             </div>
 
-            <form
-              className="subcategory-form"
-              onSubmit={handleSubmit}
-            >
+            <form className="subcategory-form" onSubmit={handleSubmit}>
               <div className="subcategory-form-group">
                 <label>
                   Category <span>*</span>
@@ -635,34 +592,21 @@ const AdminSubcategories = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className={
-                    errors.category
-                      ? "subcategory-input-error"
-                      : ""
-                  }
+                  className={errors.category ? "subcategory-input-error" : ""}
                 >
-                  <option value="">
-                    Select Category
-                  </option>
+                  <option value="">Select Category</option>
 
                   {categories
-                    .filter(
-                      (category) => category.isActive
-                    )
+                    .filter((category) => category.isActive)
                     .map((category) => (
-                      <option
-                        key={category._id}
-                        value={category._id}
-                      >
+                      <option key={category._id} value={category._id}>
                         {category.name}
                       </option>
                     ))}
                 </select>
 
                 {errors.category && (
-                  <p className="subcategory-error">
-                    {errors.category}
-                  </p>
+                  <p className="subcategory-error">{errors.category}</p>
                 )}
               </div>
 
@@ -677,17 +621,11 @@ const AdminSubcategories = () => {
                   placeholder="Enter subcategory name"
                   value={formData.name}
                   onChange={handleChange}
-                  className={
-                    errors.name
-                      ? "subcategory-input-error"
-                      : ""
-                  }
+                  className={errors.name ? "subcategory-input-error" : ""}
                 />
 
                 {errors.name && (
-                  <p className="subcategory-error">
-                    {errors.name}
-                  </p>
+                  <p className="subcategory-error">{errors.name}</p>
                 )}
               </div>
 
@@ -701,21 +639,14 @@ const AdminSubcategories = () => {
                   onChange={handleChange}
                   rows="4"
                   className={
-                    errors.description
-                      ? "subcategory-input-error"
-                      : ""
+                    errors.description ? "subcategory-input-error" : ""
                   }
                 />
 
                 <div className="subcategory-description-footer">
-                  <span>
-                    {errors.description ||
-                      "Maximum 500 characters"}
-                  </span>
+                  <span>{errors.description || "Maximum 500 characters"}</span>
 
-                  <span>
-                    {formData.description.length}/500
-                  </span>
+                  <span>{formData.description.length}/500</span>
                 </div>
               </div>
 
@@ -727,15 +658,9 @@ const AdminSubcategories = () => {
                 <div
                   className={`subcategory-upload-box ${
                     imagePreview ? "has-image" : ""
-                  } ${
-                    errors.image ? "upload-error" : ""
-                  }`}
+                  } ${errors.image ? "upload-error" : ""}`}
                   onClick={() => {
-                    document
-                      .getElementById(
-                        "subcategory-image-input"
-                      )
-                      ?.click();
+                    document.getElementById("subcategory-image-input")?.click();
                   }}
                 >
                   <input
@@ -749,10 +674,7 @@ const AdminSubcategories = () => {
 
                   {imagePreview ? (
                     <div className="subcategory-upload-preview">
-                      <img
-                        src={imagePreview}
-                        alt="Subcategory preview"
-                      />
+                      <img src={imagePreview} alt="Subcategory preview" />
 
                       <button
                         type="button"
@@ -777,27 +699,17 @@ const AdminSubcategories = () => {
                         <Upload size={27} />
                       </div>
 
-                      <h3>
-                        Upload Subcategory Image
-                      </h3>
+                      <h3>Upload Subcategory Image</h3>
 
-                      <p>
-                        Click to select an image from
-                        your computer
-                      </p>
+                      <p>Click to select an image from your computer</p>
 
-                      <span>
-                        JPG, JPEG, PNG or WEBP · Maximum
-                        5MB
-                      </span>
+                      <span>JPG, JPEG, PNG or WEBP · Maximum 5MB</span>
                     </div>
                   )}
                 </div>
 
                 {errors.image && (
-                  <p className="subcategory-error">
-                    {errors.image}
-                  </p>
+                  <p className="subcategory-error">{errors.image}</p>
                 )}
               </div>
 
@@ -821,8 +733,8 @@ const AdminSubcategories = () => {
                       ? "Updating..."
                       : "Adding..."
                     : editingId
-                    ? "Update Subcategory"
-                    : "Add Subcategory"}
+                      ? "Update Subcategory"
+                      : "Add Subcategory"}
                 </button>
               </div>
             </form>
@@ -842,9 +754,7 @@ const AdminSubcategories = () => {
               <button
                 type="button"
                 className="subcategory-close-button"
-                onClick={() =>
-                  setViewSubcategory(null)
-                }
+                onClick={() => setViewSubcategory(null)}
               >
                 <X size={21} />
               </button>
@@ -854,55 +764,36 @@ const AdminSubcategories = () => {
               <div className="subcategory-view-image">
                 {viewSubcategory.image ? (
                   <img
-                    src={getImageUrl(
-                      viewSubcategory.image
-                    )}
+                    src={getImageUrl(viewSubcategory.image)}
                     alt={viewSubcategory.name}
                     onError={(e) => {
-                      e.currentTarget.style.display =
-                        "none";
+                      e.currentTarget.style.display = "none";
                     }}
                   />
                 ) : (
-                  <span>
-                    {viewSubcategory.name
-                      ?.charAt(0)
-                      .toUpperCase()}
-                  </span>
+                  <span>{viewSubcategory.name?.charAt(0).toUpperCase()}</span>
                 )}
               </div>
 
               <div className="subcategory-view-info">
                 <div>
                   <label>Subcategory</label>
-                  <p>
-                    {viewSubcategory.name}
-                  </p>
+                  <p>{viewSubcategory.name}</p>
                 </div>
 
                 <div>
                   <label>Category</label>
-                  <p>
-                    {viewSubcategory.category?.name ||
-                      "Unknown"}
-                  </p>
+                  <p>{viewSubcategory.category?.name || "Unknown"}</p>
                 </div>
 
                 <div>
                   <label>Description</label>
-                  <p>
-                    {viewSubcategory.description ||
-                      "No description"}
-                  </p>
+                  <p>{viewSubcategory.description || "No description"}</p>
                 </div>
 
                 <div>
                   <label>Status</label>
-                  <p>
-                    {viewSubcategory.isActive
-                      ? "Active"
-                      : "Inactive"}
-                  </p>
+                  <p>{viewSubcategory.isActive ? "Active" : "Inactive"}</p>
                 </div>
               </div>
             </div>
@@ -927,8 +818,8 @@ const AdminSubcategories = () => {
 
             <p>
               Are you sure you want to delete{" "}
-              <strong>{deleteConfirm.name}</strong>?
-              This action cannot be undone.
+              <strong>{deleteConfirm.name}</strong>? This action cannot be
+              undone.
             </p>
 
             <div className="subcategory-delete-actions">

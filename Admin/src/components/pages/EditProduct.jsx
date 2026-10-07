@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -7,6 +7,7 @@ import {
   Plus,
   Trash2,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../../utils/axios";
@@ -39,7 +40,8 @@ const getImageUrl = (image) => {
     return image;
   }
 
-  const baseURL = api.defaults.baseURL || "http://localhost:3000/api";
+  const baseURL =
+    api.defaults.baseURL || "http://localhost:3000/api";
 
   const cleanBaseURL = baseURL.replace(/\/api\/?$/, "");
 
@@ -54,7 +56,7 @@ const normalizeAttributes = (attributes) => {
   if (attributes instanceof Map) {
     return Array.from(attributes.entries()).map(([key, value]) => ({
       key,
-      value,
+      value: String(value ?? ""),
     }));
   }
 
@@ -113,6 +115,14 @@ export default function EditProduct() {
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
 
+  const [tags, setTags] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [tagSearch, setTagSearch] = useState("");
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
+  const [tagsLoading, setTagsLoading] = useState(false);
+
+  const tagsSelectorRef = useRef(null);
+
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -147,7 +157,7 @@ export default function EditProduct() {
 
     try {
       const response = await api.get(
-        `/subcategories?category=${categoryId}`
+        `/subcategories?category=${categoryId}`,
       );
 
       const data =
@@ -159,10 +169,37 @@ export default function EditProduct() {
     } catch (error) {
       console.error(
         "FETCH SUBCATEGORIES ERROR:",
-        error
+        error,
       );
+
       setSubcategories([]);
       toast.error("Failed to load subcategories");
+    }
+  };
+
+  const fetchTags = async () => {
+    try {
+      setTagsLoading(true);
+
+      const response = await api.get("/tags", {
+        params: {
+          search: tagSearch.trim(),
+          limit: 50,
+        },
+      });
+
+      setAvailableTags(response.data?.tags || []);
+    } catch (error) {
+      console.error("FETCH TAGS ERROR:", error);
+
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to load tags",
+      );
+
+      setAvailableTags([]);
+    } finally {
+      setTagsLoading(false);
     }
   };
 
@@ -171,11 +208,10 @@ export default function EditProduct() {
       setLoading(true);
 
       const response = await api.get(
-        `/products/${id}`
+        `/products/${id}`,
       );
 
-      const product =
-        response.data?.product;
+      const product = response.data?.product;
 
       if (!product) {
         toast.error("Product not found");
@@ -204,20 +240,34 @@ export default function EditProduct() {
             : true,
       });
 
+      setTags(
+        Array.isArray(product.tags)
+          ? [
+              ...new Set(
+                product.tags
+                  .map((tag) =>
+                    String(tag).trim().toLowerCase(),
+                  )
+                  .filter(Boolean),
+              ),
+            ]
+          : [],
+      );
+
       setVariants(
-        normalizeVariants(product.variants)
+        normalizeVariants(product.variants),
       );
 
       await fetchSubcategories(categoryId);
     } catch (error) {
       console.error(
         "FETCH PRODUCT ERROR:",
-        error
+        error,
       );
 
       toast.error(
         error.response?.data?.message ||
-          "Failed to load product"
+          "Failed to load product",
       );
 
       navigate("/admin/products");
@@ -229,22 +279,54 @@ export default function EditProduct() {
   useEffect(() => {
     fetchCategories();
     fetchProduct();
+    fetchTags();
   }, [id]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchTags();
+    }, 300);
 
-    setFormData((prev) => ({
-      ...prev,
+    return () => clearTimeout(timer);
+  }, [tagSearch]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        tagsSelectorRef.current &&
+        !tagsSelectorRef.current.contains(event.target)
+      ) {
+        setShowTagDropdown(false);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside,
+      );
+    };
+  }, []);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
     }));
   };
 
-  const handleCategoryChange = async (e) => {
-    const categoryId = e.target.value;
+  const handleCategoryChange = async (event) => {
+    const categoryId = event.target.value;
 
-    setFormData((prev) => ({
-      ...prev,
+    setFormData((previous) => ({
+      ...previous,
       category: categoryId,
       subcategory: "",
     }));
@@ -252,9 +334,36 @@ export default function EditProduct() {
     await fetchSubcategories(categoryId);
   };
 
+  const toggleTag = (tagName) => {
+    setTags((previous) => {
+      if (previous.includes(tagName)) {
+        return previous.filter(
+          (tag) => tag !== tagName,
+        );
+      }
+
+      if (previous.length >= 10) {
+        toast.error("Maximum 10 tags allowed");
+        return previous;
+      }
+
+      return [...previous, tagName];
+    });
+  };
+
+  const removeTag = (tagName) => {
+    setTags((previous) =>
+      previous.filter((tag) => tag !== tagName),
+    );
+  };
+
+  const filteredTags = availableTags.filter(
+    (tag) => !tags.includes(tag.name),
+  );
+
   const addVariant = () => {
-    setVariants((prev) => [
-      ...prev,
+    setVariants((previous) => [
+      ...previous,
       createEmptyVariant(),
     ]);
   };
@@ -262,21 +371,21 @@ export default function EditProduct() {
   const removeVariant = (variantIndex) => {
     if (variants.length === 1) {
       toast.error(
-        "At least one variant is required"
+        "At least one variant is required",
       );
       return;
     }
 
-    setVariants((prev) =>
-      prev.filter(
-        (_, index) => index !== variantIndex
-      )
+    setVariants((previous) =>
+      previous.filter(
+        (_, index) => index !== variantIndex,
+      ),
     );
   };
 
   const addAttribute = (variantIndex) => {
-    setVariants((prev) =>
-      prev.map((variant, index) => {
+    setVariants((previous) =>
+      previous.map((variant, index) => {
         if (index !== variantIndex) {
           return variant;
         }
@@ -288,36 +397,35 @@ export default function EditProduct() {
             createEmptyAttribute(),
           ],
         };
-      })
+      }),
     );
   };
 
   const removeAttribute = (
     variantIndex,
-    attributeIndex
+    attributeIndex,
   ) => {
-    setVariants((prev) =>
-      prev.map((variant, index) => {
+    setVariants((previous) =>
+      previous.map((variant, index) => {
         if (index !== variantIndex) {
           return variant;
         }
 
         if (variant.attributes.length === 1) {
           toast.error(
-            "At least one attribute is required"
+            "At least one attribute is required",
           );
+
           return variant;
         }
 
         return {
           ...variant,
-          attributes:
-            variant.attributes.filter(
-              (_, index) =>
-                index !== attributeIndex
-            ),
+          attributes: variant.attributes.filter(
+            (_, index) => index !== attributeIndex,
+          ),
         };
-      })
+      }),
     );
   };
 
@@ -325,10 +433,10 @@ export default function EditProduct() {
     variantIndex,
     attributeIndex,
     field,
-    value
+    value,
   ) => {
-    setVariants((prev) =>
-      prev.map((variant, index) => {
+    setVariants((previous) =>
+      previous.map((variant, index) => {
         if (index !== variantIndex) {
           return variant;
         }
@@ -344,24 +452,24 @@ export default function EditProduct() {
                 ...attribute,
                 [field]: value,
               };
-            }
+            },
           );
 
         return {
           ...variant,
           attributes: updatedAttributes,
         };
-      })
+      }),
     );
   };
 
   const handleVariantChange = (
     variantIndex,
     field,
-    value
+    value,
   ) => {
-    setVariants((prev) =>
-      prev.map((variant, index) => {
+    setVariants((previous) =>
+      previous.map((variant, index) => {
         if (index !== variantIndex) {
           return variant;
         }
@@ -370,24 +478,21 @@ export default function EditProduct() {
           ...variant,
           [field]: value,
         };
-      })
+      }),
     );
   };
 
-  const handleImages = (
-    variantIndex,
-    e
-  ) => {
+  const handleImages = (variantIndex, event) => {
     const files = Array.from(
-      e.target.files || []
+      event.target.files || [],
     );
 
     if (!files.length) {
       return;
     }
 
-    setVariants((prevVariants) => {
-      return prevVariants.map(
+    setVariants((previousVariants) =>
+      previousVariants.map(
         (variant, index) => {
           if (index !== variantIndex) {
             return variant;
@@ -398,58 +503,56 @@ export default function EditProduct() {
 
           if (remainingSlots <= 0) {
             toast.error(
-              "Maximum 5 images allowed per variant"
+              "Maximum 5 images allowed per variant",
             );
+
             return variant;
           }
 
           const validFiles = [];
 
           files.forEach((file) => {
-            if (
-              !file.type.startsWith("image/")
-            ) {
+            if (!file.type.startsWith("image/")) {
               toast.error(
-                `${file.name} is not a valid image`
+                `${file.name} is not a valid image`,
               );
+
               return;
             }
 
-            if (
-              file.size >
-              5 * 1024 * 1024
-            ) {
+            if (file.size > 5 * 1024 * 1024) {
               toast.error(
-                `${file.name} must be less than 5MB`
+                `${file.name} must be less than 5MB`,
               );
+
               return;
             }
 
             validFiles.push(file);
           });
 
-          const filesToAdd =
-            validFiles.slice(
-              0,
-              remainingSlots
-            );
+          const filesToAdd = validFiles.slice(
+            0,
+            remainingSlots,
+          );
 
           if (
             validFiles.length >
             remainingSlots
           ) {
             toast.error(
-              "Maximum 5 images allowed per variant"
+              "Maximum 5 images allowed per variant",
             );
           }
 
-          const newImages =
-            filesToAdd.map((file) => ({
+          const newImages = filesToAdd.map(
+            (file) => ({
               type: "new",
               file,
               preview:
                 URL.createObjectURL(file),
-            }));
+            }),
+          );
 
           return {
             ...variant,
@@ -458,19 +561,19 @@ export default function EditProduct() {
               ...newImages,
             ],
           };
-        }
-      );
-    });
+        },
+      ),
+    );
 
-    e.target.value = "";
+    event.target.value = "";
   };
 
   const removeImage = (
     variantIndex,
-    imageIndex
+    imageIndex,
   ) => {
-    setVariants((prevVariants) =>
-      prevVariants.map(
+    setVariants((previousVariants) =>
+      previousVariants.map(
         (variant, index) => {
           if (index !== variantIndex) {
             return variant;
@@ -484,53 +587,39 @@ export default function EditProduct() {
             imageToRemove?.preview
           ) {
             URL.revokeObjectURL(
-              imageToRemove.preview
+              imageToRemove.preview,
             );
           }
 
           return {
             ...variant,
-            images:
-              variant.images.filter(
-                (_, index) =>
-                  index !== imageIndex
-              ),
+            images: variant.images.filter(
+              (_, index) =>
+                index !== imageIndex,
+            ),
           };
-        }
-      )
+        },
+      ),
     );
   };
 
-  const calculateFinalPrice = (
-    variant
-  ) => {
-    const price =
-      Number(variant.price) || 0;
+  const calculateFinalPrice = (variant) => {
+    const price = Number(variant.price) || 0;
 
     const discount =
-      Number(
-        variant.discountValue
-      ) || 0;
+      Number(variant.discountValue) || 0;
 
     if (
-      variant.discountType ===
-      "percentage"
+      variant.discountType === "percentage"
     ) {
       return Math.max(
         0,
-        price -
-          (price * discount) / 100
+        price - (price * discount) / 100,
       );
     }
 
-    if (
-      variant.discountType ===
-      "flat"
-    ) {
-      return Math.max(
-        0,
-        price - discount
-      );
+    if (variant.discountType === "flat") {
+      return Math.max(0, price - discount);
     }
 
     return price;
@@ -538,37 +627,36 @@ export default function EditProduct() {
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      toast.error(
-        "Product name is required"
-      );
+      toast.error("Product name is required");
       return false;
     }
 
     if (!formData.category) {
-      toast.error(
-        "Please select a category"
-      );
+      toast.error("Please select a category");
       return false;
     }
 
     if (!formData.subcategory) {
-      toast.error(
-        "Please select a subcategory"
-      );
+      toast.error("Please select a subcategory");
       return false;
     }
 
     if (!formData.description.trim()) {
       toast.error(
-        "Product description is required"
+        "Product description is required",
       );
       return false;
     }
 
     if (!variants.length) {
       toast.error(
-        "At least one variant is required"
+        "At least one variant is required",
       );
+      return false;
+    }
+
+    if (tags.length > 10) {
+      toast.error("Maximum 10 tags allowed");
       return false;
     }
 
@@ -581,8 +669,9 @@ export default function EditProduct() {
 
       if (!variant.attributes.length) {
         toast.error(
-          `Variant ${i + 1} needs an attribute`
+          `Variant ${i + 1} needs an attribute`,
         );
+
         return false;
       }
 
@@ -596,40 +685,35 @@ export default function EditProduct() {
         const attribute =
           variant.attributes[j];
 
-        const key =
-          attribute.key.trim();
+        const key = attribute.key.trim();
         const value =
           attribute.value.trim();
 
         if (!key || !value) {
           toast.error(
-            `Variant ${
-              i + 1
-            } has an empty attribute`
+            `Variant ${i + 1} has an empty attribute`,
           );
+
           return false;
         }
 
         const normalizedKey =
           key.toLowerCase();
 
-        if (
-          attributes[normalizedKey]
-        ) {
+        if (attributes[normalizedKey]) {
           toast.error(
             `Duplicate attribute in variant ${
               i + 1
-            }`
+            }`,
           );
+
           return false;
         }
 
-        attributes[normalizedKey] =
-          value;
+        attributes[normalizedKey] = value;
       }
 
-      const price =
-        Number(variant.price);
+      const price = Number(variant.price);
 
       if (
         variant.price === "" ||
@@ -639,8 +723,9 @@ export default function EditProduct() {
         toast.error(
           `Variant ${
             i + 1
-          } must have a valid price`
+          } must have a valid price`,
         );
+
         return false;
       }
 
@@ -656,8 +741,9 @@ export default function EditProduct() {
         toast.error(
           `Variant ${
             i + 1
-          } must have a valid stock`
+          } must have a valid stock`,
         );
+
         return false;
       }
 
@@ -665,7 +751,7 @@ export default function EditProduct() {
         variant.discountValue === ""
           ? 0
           : Number(
-              variant.discountValue
+              variant.discountValue,
             );
 
       if (
@@ -675,8 +761,9 @@ export default function EditProduct() {
         toast.error(
           `Variant ${
             i + 1
-          } has an invalid discount`
+          } has an invalid discount`,
         );
+
         return false;
       }
 
@@ -688,8 +775,9 @@ export default function EditProduct() {
         toast.error(
           `Percentage discount cannot exceed 100 in variant ${
             i + 1
-          }`
+          }`,
         );
+
         return false;
       }
 
@@ -700,30 +788,29 @@ export default function EditProduct() {
         toast.error(
           `Flat discount cannot be greater than price in variant ${
             i + 1
-          }`
+          }`,
         );
+
         return false;
       }
 
-      if (
-        variant.images.length === 0
-      ) {
+      if (variant.images.length === 0) {
         toast.error(
           `At least one image is required for variant ${
             i + 1
-          }`
+          }`,
         );
+
         return false;
       }
 
-      if (
-        variant.images.length > 5
-      ) {
+      if (variant.images.length > 5) {
         toast.error(
           `Maximum 5 images are allowed for variant ${
             i + 1
-          }`
+          }`,
         );
+
         return false;
       }
     }
@@ -747,16 +834,14 @@ export default function EditProduct() {
             attribute.value
               .trim()
               .toLowerCase();
-        }
+        },
       );
 
-      const key = Object.keys(
-        attributes
-      )
+      const key = Object.keys(attributes)
         .sort()
         .map(
           (attributeKey) =>
-            `${attributeKey}:${attributes[attributeKey]}`
+            `${attributeKey}:${attributes[attributeKey]}`,
         )
         .join("|");
 
@@ -764,8 +849,9 @@ export default function EditProduct() {
         toast.error(
           `Duplicate variant found at variant ${
             i + 1
-          }`
+          }`,
         );
+
         return false;
       }
 
@@ -775,8 +861,8 @@ export default function EditProduct() {
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     if (!validateForm()) {
       return;
@@ -789,27 +875,32 @@ export default function EditProduct() {
 
       data.append(
         "name",
-        formData.name.trim()
+        formData.name.trim(),
       );
 
       data.append(
         "category",
-        formData.category
+        formData.category,
       );
 
       data.append(
         "subcategory",
-        formData.subcategory
+        formData.subcategory,
       );
 
       data.append(
         "description",
-        formData.description.trim()
+        formData.description.trim(),
       );
 
       data.append(
         "isActive",
-        String(formData.isActive)
+        String(formData.isActive),
+      );
+
+      data.append(
+        "tags",
+        JSON.stringify(tags),
       );
 
       const variantsForBackend =
@@ -820,48 +911,41 @@ export default function EditProduct() {
             (attribute) => {
               const key =
                 attribute.key.trim();
+
               const value =
                 attribute.value.trim();
 
               if (key && value) {
-                attributes[key] =
-                  value;
+                attributes[key] = value;
               }
-            }
+            },
           );
 
           const existingImages =
             variant.images
               .filter(
                 (image) =>
-                  image.type ===
-                  "existing"
+                  image.type === "existing",
               )
               .map(
-                (image) =>
-                  image.path
+                (image) => image.path,
               );
 
           return {
             _id: variant._id,
             attributes,
-            price: Number(
-              variant.price
-            ),
+            price: Number(variant.price),
             discountType:
-              variant.discountType ||
-              null,
+              variant.discountType || null,
             discountValue: Number(
-              variant.discountValue ||
-                0
+              variant.discountValue || 0,
             ),
             stock: Number(
-              variant.stock || 0
+              variant.stock || 0,
             ),
             images: existingImages,
             isActive:
-              variant.isActive !==
-              undefined
+              variant.isActive !== undefined
                 ? variant.isActive
                 : true,
           };
@@ -869,9 +953,7 @@ export default function EditProduct() {
 
       data.append(
         "variants",
-        JSON.stringify(
-          variantsForBackend
-        )
+        JSON.stringify(variantsForBackend),
       );
 
       variants.forEach(
@@ -884,34 +966,34 @@ export default function EditProduct() {
               ) {
                 data.append(
                   `variant_${variantIndex}_images`,
-                  image.file
+                  image.file,
                 );
               }
-            }
+            },
           );
-        }
+        },
       );
 
       const response = await api.put(
         `/${id}`,
-        data
+        data,
       );
 
       toast.success(
         response.data?.message ||
-          "Product updated successfully"
+          "Product updated successfully",
       );
 
       navigate("/admin/products");
     } catch (error) {
       console.error(
         "UPDATE PRODUCT ERROR:",
-        error
+        error,
       );
 
       toast.error(
         error.response?.data?.message ||
-          "Failed to update product"
+          "Failed to update product",
       );
     } finally {
       setSaving(false);
@@ -960,9 +1042,7 @@ export default function EditProduct() {
 
           <div className="admin-form-grid">
             <div className="admin-form-group admin-full-width">
-              <label>
-                Product Name
-              </label>
+              <label>Product Name</label>
 
               <input
                 type="text"
@@ -995,15 +1075,13 @@ export default function EditProduct() {
                     >
                       {category.name}
                     </option>
-                  )
+                  ),
                 )}
               </select>
             </div>
 
             <div className="admin-form-group">
-              <label>
-                Subcategory
-              </label>
+              <label>Subcategory</label>
 
               <select
                 name="subcategory"
@@ -1022,26 +1100,20 @@ export default function EditProduct() {
                 {subcategories.map(
                   (subcategory) => (
                     <option
-                      key={
-                        subcategory._id
-                      }
+                      key={subcategory._id}
                       value={
                         subcategory._id
                       }
                     >
-                      {
-                        subcategory.name
-                      }
+                      {subcategory.name}
                     </option>
-                  )
+                  ),
                 )}
               </select>
             </div>
 
             <div className="admin-form-group admin-full-width">
-              <label>
-                Description
-              </label>
+              <label>Description</label>
 
               <textarea
                 name="description"
@@ -1054,10 +1126,154 @@ export default function EditProduct() {
               />
             </div>
 
+            <div className="admin-form-group admin-full-width">
+              <label>Product Tags</label>
+
+              <div
+                className="product-tags-selector"
+                ref={tagsSelectorRef}
+              >
+                <button
+                  type="button"
+                  className={`product-tags-control ${
+                    showTagDropdown
+                      ? "active"
+                      : ""
+                  }`}
+                  onClick={() =>
+                    setShowTagDropdown(
+                      (previous) =>
+                        !previous,
+                    )
+                  }
+                >
+                  <div className="product-tags-selected">
+                    {tags.length === 0 ? (
+                      <span className="product-tags-placeholder">
+                        Search and select tags
+                      </span>
+                    ) : (
+                      tags.map((tag) => (
+                        <span
+                          className="product-tag-chip"
+                          key={tag}
+                        >
+                          {tag}
+
+                          <span
+                            className="product-tag-chip-remove"
+                            onClick={(
+                              event,
+                            ) => {
+                              event.stopPropagation();
+                              removeTag(tag);
+                            }}
+                          >
+                            <X size={12} />
+                          </span>
+                        </span>
+                      ))
+                    )}
+                  </div>
+
+                  <ChevronDown
+                    size={18}
+                    className={`product-tags-chevron ${
+                      showTagDropdown
+                        ? "open"
+                        : ""
+                    }`}
+                  />
+                </button>
+
+                {showTagDropdown && (
+                  <div className="product-tags-dropdown">
+                    <div className="product-tags-search">
+                      <input
+                        type="text"
+                        value={tagSearch}
+                        onChange={(event) =>
+                          setTagSearch(
+                            event.target
+                              .value,
+                          )
+                        }
+                        placeholder="Search tags..."
+                        autoFocus
+                        onClick={(event) =>
+                          event.stopPropagation()
+                        }
+                      />
+                    </div>
+
+                    <div className="product-tags-dropdown-list">
+                      {tagsLoading ? (
+                        <div className="product-tags-dropdown-empty">
+                          Loading tags...
+                        </div>
+                      ) : filteredTags.length ===
+                        0 ? (
+                        <div className="product-tags-dropdown-empty">
+                          {tagSearch
+                            ? "No matching tags found"
+                            : "No more tags available"}
+                        </div>
+                      ) : (
+                        filteredTags.map(
+                          (tag) => (
+                            <button
+                              type="button"
+                              className="product-tag-option"
+                              key={tag._id}
+                              onClick={() =>
+                                toggleTag(
+                                  tag.name,
+                                )
+                              }
+                            >
+                              <span>
+                                {tag.name}
+                              </span>
+
+                              <span className="product-tag-option-add">
+                                +
+                              </span>
+                            </button>
+                          ),
+                        )
+                      )}
+                    </div>
+
+                    <div className="product-tags-dropdown-footer">
+                      <span>
+                        {tags.length}/10
+                        tags selected
+                      </span>
+
+                      {tags.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTags([])
+                          }
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <small className="admin-form-help">
+                Select up to 10 tags. These
+                tags are used to show related
+                products.
+              </small>
+            </div>
+
             <div className="admin-form-group">
-              <label>
-                Product Status
-              </label>
+              <label>Product Status</label>
 
               <select
                 value={
@@ -1065,18 +1281,21 @@ export default function EditProduct() {
                     ? "true"
                     : "false"
                 }
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isActive:
-                      e.target.value ===
-                      "true",
-                  }))
+                onChange={(event) =>
+                  setFormData(
+                    (previous) => ({
+                      ...previous,
+                      isActive:
+                        event.target.value ===
+                        "true",
+                    }),
+                  )
                 }
               >
                 <option value="true">
                   Active
                 </option>
+
                 <option value="false">
                   Inactive
                 </option>
@@ -1089,10 +1308,11 @@ export default function EditProduct() {
           <div className="admin-form-section-header admin-variants-header">
             <div>
               <h2>Product Variants</h2>
+
               <p>
                 Add different options,
-                prices, stock and images
-                for this product
+                prices, stock and images for
+                this product
               </p>
             </div>
 
@@ -1124,20 +1344,17 @@ export default function EditProduct() {
                       </h3>
                     </div>
 
-                    {variants.length >
-                      1 && (
+                    {variants.length > 1 && (
                       <button
                         type="button"
                         className="admin-remove-variant-btn"
                         onClick={() =>
                           removeVariant(
-                            variantIndex
+                            variantIndex,
                           )
                         }
                       >
-                        <Trash2
-                          size={17}
-                        />
+                        <Trash2 size={17} />
                         Remove
                       </button>
                     )}
@@ -1145,16 +1362,14 @@ export default function EditProduct() {
 
                   <div className="admin-variant-attributes">
                     <div className="admin-subsection-title">
-                      <h4>
-                        Attributes
-                      </h4>
+                      <h4>Attributes</h4>
 
                       <button
                         type="button"
                         className="admin-add-attribute-btn"
                         onClick={() =>
                           addAttribute(
-                            variantIndex
+                            variantIndex,
                           )
                         }
                       >
@@ -1166,7 +1381,7 @@ export default function EditProduct() {
                     {variant.attributes.map(
                       (
                         attribute,
-                        attributeIndex
+                        attributeIndex,
                       ) => (
                         <div
                           className="admin-attribute-row"
@@ -1179,15 +1394,13 @@ export default function EditProduct() {
                             value={
                               attribute.key
                             }
-                            onChange={(
-                              e
-                            ) =>
+                            onChange={(event) =>
                               handleAttributeChange(
                                 variantIndex,
                                 attributeIndex,
                                 "key",
-                                e.target
-                                  .value
+                                event.target
+                                  .value,
                               )
                             }
                             placeholder="Attribute e.g. Color"
@@ -1198,49 +1411,41 @@ export default function EditProduct() {
                             value={
                               attribute.value
                             }
-                            onChange={(
-                              e
-                            ) =>
+                            onChange={(event) =>
                               handleAttributeChange(
                                 variantIndex,
                                 attributeIndex,
                                 "value",
-                                e.target
-                                  .value
+                                event.target
+                                  .value,
                               )
                             }
                             placeholder="Value e.g. Black"
                           />
 
-                          {variant
-                            .attributes
-                            .length >
-                            1 && (
+                          {variant.attributes
+                            .length > 1 && (
                             <button
                               type="button"
                               className="admin-remove-attribute-btn"
                               onClick={() =>
                                 removeAttribute(
                                   variantIndex,
-                                  attributeIndex
+                                  attributeIndex,
                                 )
                               }
                             >
-                              <X
-                                size={17}
-                              />
+                              <X size={17} />
                             </button>
                           )}
                         </div>
-                      )
+                      ),
                     )}
                   </div>
 
                   <div className="admin-variant-fields">
                     <div className="admin-form-group">
-                      <label>
-                        Price
-                      </label>
+                      <label>Price</label>
 
                       <input
                         type="number"
@@ -1248,12 +1453,11 @@ export default function EditProduct() {
                         value={
                           variant.price
                         }
-                        onChange={(e) =>
+                        onChange={(event) =>
                           handleVariantChange(
                             variantIndex,
                             "price",
-                            e.target
-                              .value
+                            event.target.value,
                           )
                         }
                         placeholder="999"
@@ -1269,21 +1473,22 @@ export default function EditProduct() {
                         value={
                           variant.discountType
                         }
-                        onChange={(e) =>
+                        onChange={(event) =>
                           handleVariantChange(
                             variantIndex,
                             "discountType",
-                            e.target
-                              .value
+                            event.target.value,
                           )
                         }
                       >
                         <option value="">
                           No Discount
                         </option>
+
                         <option value="flat">
                           Flat
                         </option>
+
                         <option value="percentage">
                           Percentage
                         </option>
@@ -1301,12 +1506,11 @@ export default function EditProduct() {
                         value={
                           variant.discountValue
                         }
-                        onChange={(e) =>
+                        onChange={(event) =>
                           handleVariantChange(
                             variantIndex,
                             "discountValue",
-                            e.target
-                              .value
+                            event.target.value,
                           )
                         }
                         placeholder="100"
@@ -1317,9 +1521,7 @@ export default function EditProduct() {
                     </div>
 
                     <div className="admin-form-group">
-                      <label>
-                        Stock
-                      </label>
+                      <label>Stock</label>
 
                       <input
                         type="number"
@@ -1327,12 +1529,11 @@ export default function EditProduct() {
                         value={
                           variant.stock
                         }
-                        onChange={(e) =>
+                        onChange={(event) =>
                           handleVariantChange(
                             variantIndex,
                             "stock",
-                            e.target
-                              .value
+                            event.target.value,
                           )
                         }
                         placeholder="20"
@@ -1341,16 +1542,14 @@ export default function EditProduct() {
                   </div>
 
                   <div className="admin-variant-price-preview">
-                    <span>
-                      Final Price
-                    </span>
+                    <span>Final Price</span>
 
                     <strong>
                       ₹
                       {calculateFinalPrice(
-                        variant
+                        variant,
                       ).toLocaleString(
-                        "en-IN"
+                        "en-IN",
                       )}
                     </strong>
                   </div>
@@ -1376,7 +1575,7 @@ export default function EditProduct() {
                       {variant.images.map(
                         (
                           image,
-                          imageIndex
+                          imageIndex,
                         ) => (
                           <div
                             className="admin-variant-image-card"
@@ -1408,7 +1607,7 @@ export default function EditProduct() {
                               onClick={() =>
                                 removeImage(
                                   variantIndex,
-                                  imageIndex
+                                  imageIndex,
                                 )
                               }
                             >
@@ -1422,11 +1621,11 @@ export default function EditProduct() {
                               </span>
                             )}
                           </div>
-                        )
+                        ),
                       )}
 
-                      {variant.images
-                        .length < 5 && (
+                      {variant.images.length <
+                        5 && (
                         <label className="admin-upload-image-box">
                           <Upload
                             size={24}
@@ -1437,12 +1636,9 @@ export default function EditProduct() {
                           </span>
 
                           <small>
-                            {
-                              5 -
-                                variant
-                                  .images
-                                  .length
-                            }{" "}
+                            {5 -
+                              variant.images
+                                .length}{" "}
                             remaining
                           </small>
 
@@ -1450,10 +1646,10 @@ export default function EditProduct() {
                             type="file"
                             accept="image/jpeg,image/jpg,image/png,image/webp"
                             multiple
-                            onChange={(e) =>
+                            onChange={(event) =>
                               handleImages(
                                 variantIndex,
-                                e
+                                event,
                               )
                             }
                           />
@@ -1462,7 +1658,7 @@ export default function EditProduct() {
                     </div>
                   </div>
                 </div>
-              )
+              ),
             )}
           </div>
         </div>
@@ -1472,9 +1668,7 @@ export default function EditProduct() {
             type="button"
             className="admin-cancel-btn"
             onClick={() =>
-              navigate(
-                "/admin/products"
-              )
+              navigate("/admin/products")
             }
             disabled={saving}
           >
